@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans&display=swap');
+
+/***** General *****/
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-accent: #6f8f72;
+  --color-accent-hover: #5e7d61;
+  --color-bg: #fff;
+  --color-border: #e2e2e2;
+  --color-muted: #6b6b6b;
+  --color-section-bg: #f7f7f7;
+  --color-text: #1f1f1f;
+}
+
+html {
+  color: var(--color-text);
+  font: 16px 'PT Sans', sans-serif;
+}
+
+body {
+  background-color: var(--color-bg);
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover,
+a:hover li {
+  text-decoration: underline;
+}
+
+ul {
+  padding-left: 0;
+}
+
+/***** Utility Class Borrowed From Bootstrap *****/
+
+.visually-hidden {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+/***** Wrapper *****/
+
+.wrapper {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+/***** Header *****/
+
+#skip-link {
+  background-color: #fff6e0;
+  border: #231f20 double 6px;
+  box-shadow: 0 0 5px #000;
+  color: #231f20;
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  position: absolute;
+  text-align: center;
+  text-decoration: none;
+  top: -9999px;
+  z-index: 100;
+}
+
+#skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+h1 {
+  display: inline-block;
+}
+
+header nav {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  padding: 1rem;
+  width: auto;
+}
+
+header nav ul {
+  list-style-type: none;
+}
+
+header nav li {
+  display: inline-block;
+  margin: .5rem;
+  padding: .5rem;
+}
+
+nav a {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+}
+
+/***** Main *****/
+
+#top-recipes-section {
+  background-color: var(--color-section-bg);
+  padding: 1rem;
+}
+
+.recipe-grid {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: repeat(4, minmax(1px, 1fr));
+  /* justify-content: space-around; */
+}
+
+.recipe-card {
+  /* background-color: var(--color-bg); */
+  box-shadow: 0 3px 5px rgba(0,0,0,.5);
+}
+
+.recipe-card h3 {
+  order: -1;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table, th, td {
+  border: 1px solid #000;
+  padding: .25rem;
+}
+
+/***** Footer *****/
+
+footer p {
+  text-align: center;
+}

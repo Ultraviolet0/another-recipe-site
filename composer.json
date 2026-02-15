@@ -1,0 +1,21 @@
+{
+    "name": "ultraviolet0/another-recipe-site",
+    "description": "Recipe sharing web application",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ultraviolet0\\AnotherRecipeSite\\": "private/classes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Robert Uhren",
+            "email": "Robert.Uhren@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
