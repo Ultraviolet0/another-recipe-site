@@ -4,9 +4,7 @@
     "type": "project",
     "license": "MIT",
     "autoload": {
-        "psr-4": {
-            "Ultraviolet0\\AnotherRecipeSite\\": "private/classes/"
-        }
+        "classmap": ["private/classes/"]
     },
     "authors": [
         {

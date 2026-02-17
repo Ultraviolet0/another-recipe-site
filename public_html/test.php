@@ -1,5 +1,6 @@
 <?php
 require_once('../private/initialize.php');
+
 $measurements = Measurement::find_all();
 $page_title = 'Measurements';
 include(SHARED_PATH . '/public_header.php');
