@@ -136,13 +136,45 @@ nav a {
 }
 
 .recipe-card {
-  /* background-color: var(--color-bg); */
+  background-color: var(--color-bg);
   box-shadow: 0 3px 5px rgba(0,0,0,.5);
+  display: flex;
+  flex-direction: column-reverse;
+  /* height: 360px; */
+  position: relative;
+  width: 270px;
+}
+
+.recipe-card-info {
+  padding: 0 1rem;
 }
 
 .recipe-card h3 {
-  order: -1;
+  margin: 0;
+  text-align: center;
+  /* order: -1; */
 }
+
+.recipe-card-rating {
+  display: inline-block;
+}
+
+.recipe-card-rating-time {
+  display: flex;
+  justify-content: space-between;
+}
+
+.recipe-card-badge {
+  background-color: yellow;
+  border: 1px solid #000;
+  border-radius: 10px 0 10px 0;
+  padding: .5rem;
+  position: absolute;
+  z-index: 100;
+  top: 250px;
+}
+
+/***** Tables *****/
 
 table {
   border-collapse: collapse;
@@ -158,3 +190,6 @@ table, th, td {
 footer p {
   text-align: center;
 }
+
+
+/***** Breakpoints *****/
