@@ -106,11 +106,20 @@ class DatabaseObject
 
     $attributes = $this->sanitized_attributes();
 
+    $values = [];
+    foreach($attributes as $value) {
+      if ($value === null) {
+        $values[] = "NULL";
+      } else {
+        $values[] = "'" . $value . "'";
+      }
+    }
+
     $sql = "INSERT INTO " . static::$table_name . " (";
     $sql .= join(', ', array_keys($attributes));
-    $sql .= ") VALUES ('";
-    $sql .= join("', '", array_values($attributes));
-    $sql .= "')";
+    $sql .= ") VALUES (";
+    $sql .= join(', ', $values);
+    $sql .= ")";
 
     $result = self::$database->query($sql);
     if ($result) {
@@ -128,7 +137,11 @@ class DatabaseObject
     $attributes = $this->sanitized_attributes();
     $attribute_pairs = [];
     foreach ($attributes as $key => $value) {
-      $attribute_pairs[] = "{$key}='{$value}'";
+      if ($value === null) {
+        $attribute_pairs[] = "{$key}=NULL";
+      } else {
+        $attribute_pairs[] = "{$key}='{$value}'";
+      }
     }
 
     $pk = static::$primary_key;

@@ -4,7 +4,7 @@ $page_title = 'REPLACE ME';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
-<main>
+<main role="main" tabindex="-1" id="main-content">
 
 </main>
 

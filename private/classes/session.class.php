@@ -23,7 +23,7 @@ class Session {
       $this->username = $_SESSION['username'] = $user->username_usr;
       $this->last_login = $_SESSION['last_login'] = time();
 
-      $this->roles = $_SESSION['roles'] = $user->role_names();
+      $this->roles = $_SESSION['roles'] = $user->get_role_names();
     }
     return true;
   }

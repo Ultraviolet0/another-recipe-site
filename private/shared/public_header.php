@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
   <head>
     <title><?php if(isset($page_title)) { echo h($page_title) . ' - Another Recipe Site'; } ?></title>
     <meta charset="utf-8">
@@ -8,24 +9,23 @@
 
   <body>
     <a href="#main-content" id="skip-link">Skip to main content</a>
-    <header class="wrapper">
-        <h1><a href="<?php echo url_for('/'); ?>">anotherrecipe.site</a></h1>
-        <nav>
+    <header role="banner">
+      <div class="wrapper">
+        <h1><a href="<?php echo url_for('/'); ?>"><span>AnotherRecipe.Site</span></a></h1>
+        <nav role="navigation">
           <ul>
-            <a href="#"><li>Recipes</li></a>
-            <a href="#"><li>Meals</li></a>
-            <a href="#"><li>Cuisines</li></a>
-            <a href="#"><li>Health</li></a>
+            <li><a href="<?php echo url_for('/recipes.php'); ?>"><span>Recipes</span></a></li>
           </ul>
           <form role="search" action="#" method="get" id="search-form">
             <label for="s" class="visually-hidden">Search</label>
             <input type="search" name="s" id="s" placeholder="Find a recipe" required>
-            <button type="submit">Search</button>
+            <button type="submit"><span class="visually-hidden">Search</span></button>
           </form>
           <ul>
-            <a href="#"><li>Login</li></a>
+            <li><a href="<?php echo url_for('/login.php'); ?>"><span>Login</span></a></li>
           </ul>
         </nav>
-      </header>
+      </div>
+    </header>
 
     <?php echo display_session_message(); ?>

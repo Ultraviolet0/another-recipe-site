@@ -20,6 +20,7 @@ class User extends DatabaseObject
   public $password;
   public $confirm_password;
   protected $password_required = true;
+  protected $roles = null;
 
   public function __construct($args = [])
   {
@@ -37,7 +38,8 @@ class User extends DatabaseObject
     $this->password_hash_usr = password_hash($this->password, PASSWORD_BCRYPT);
   }
 
-  public function verify_password($password) {
+  public function verify_password($password)
+  {
     return password_verify($password, $this->password_hash_usr);
   }
 
@@ -47,7 +49,7 @@ class User extends DatabaseObject
     $result = parent::create();
 
     if ($result) {
-      $this->assign_role_by_name('member');
+      $this->add_role_by_name('member');
     }
 
     return $result;
@@ -129,9 +131,15 @@ class User extends DatabaseObject
 
   // Roles Functions
 
-  public function role_names()
+  public function get_role_names()
   {
-    if (!isset($this->id_usr)) { return []; }
+    if (!isset($this->id_usr)) {
+      return [];
+    }
+
+    if (is_array($this->roles)) {
+      return $this->roles;
+    } // already loaded
 
     $sql = "SELECT r.name_rol ";
     $sql .= "FROM user_role_usrrol ur ";
@@ -139,7 +147,9 @@ class User extends DatabaseObject
     $sql .= "WHERE ur.id_usr_usrrol = '" . self::$database->escape_string($this->id_usr) . "'";
 
     $result = self::$database->query($sql);
-    if (!$result) { return []; }
+    if (!$result) {
+      return [];
+    }
 
     $roles = [];
     while ($row = $result->fetch_assoc()) {
@@ -147,19 +157,21 @@ class User extends DatabaseObject
     }
     $result->free();
 
-    return $roles;
+    return $this->roles = $roles;
   }
 
   public function has_role($role_name)
   {
     $role_name = strtolower($role_name);
-    $roles = array_map('strtolower', $this->role_names());
+    $roles = array_map('strtolower', $this->get_role_names());
     return in_array($role_name, $roles, true);
   }
 
-  public function assign_role_by_name($role_name)
+  public function add_role_by_name($role_name)
   {
-    if (!isset($this->id_usr)) { return false; }
+    if (!isset($this->id_usr)) {
+      return false;
+    }
 
     $role_name_esc = self::$database->escape_string($role_name);
 
@@ -170,11 +182,15 @@ class User extends DatabaseObject
     $sql .= "LIMIT 1";
 
     $result = self::$database->query($sql);
-    if (!$result) { return false; }
+    if (!$result) {
+      return false;
+    }
 
     $row = $result->fetch_assoc();
     $result->free();
-    if (!$row) { return false; }
+    if (!$row) {
+      return false;
+    }
 
     $role_id = $row['id_rol'];
 
@@ -182,6 +198,64 @@ class User extends DatabaseObject
     $sql .= "VALUES ('" . self::$database->escape_string($this->id_usr) . "', '{$role_id}')";
 
     $result = self::$database->query($sql);
-    return $result;
+
+    if ($result) {
+      if (is_array($this->roles)) {
+        $this->roles[] = $role_name;
+        $this->roles = array_values(array_unique($this->roles));
+      }
+    }
+
+    if (!$result) {
+      return false;
+    }
+
+    return true;
+  }
+
+  public function set_role_names($role_names)
+  {
+    if (!isset($this->id_usr)) {
+      return false;
+    }
+
+    // convert passed strings to array
+    if (!is_array($role_names)) {
+      $role_names = [$role_names];
+    }
+
+    // normalize
+    $clean_role_names = [];
+    foreach ($role_names as $name) {
+      $name = trim((string)$name);
+      if ($name !== '') {
+        $clean_role_names[] = $name;
+      }
+    }
+    $clean_role_names = array_values(array_unique($clean_role_names));
+
+    if (!in_array('member', array_map('strtolower', $clean_role_names), true)) {
+      $clean_role_names[] = 'member';
+    }
+
+    $user_id = self::$database->escape_string($this->id_usr);
+
+    // remove existing roles
+    $sql = "DELETE FROM user_role_usrrol WHERE id_usr_usrrol = '{$user_id}'";
+    $result = self::$database->query($sql);
+    if (!$result) {
+      return false;
+    }
+
+    foreach ($clean_role_names as $role_name) {
+      $result = $this->add_role_by_name($role_name);
+      if (!$result) {
+        return false;
+      }
+    }
+
+    $this->roles = $clean_role_names;
+
+    return true;
   }
 }

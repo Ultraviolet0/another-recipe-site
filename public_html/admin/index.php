@@ -11,7 +11,7 @@ include(SHARED_PATH . '/public_header.php'); ?>
     <h1>Members</h1>
 
     <div class="actions">
-      <a class="action" href="<?php echo url_for('/users/new.php'); ?>">Add User</a>
+      <a class="action" href="<?php echo url_for('/admin/new.php'); ?>">Add User</a>
     </div>
 
     <table class="list">
@@ -34,14 +34,14 @@ include(SHARED_PATH . '/public_header.php'); ?>
           <td><?php echo h($user->id_usr); ?></td>
           <td><?php echo h($user->username_usr); ?></td>
           <td><?php echo h($user->email_usr); ?></td>
-          <td><?php echo h($user->get_member_type()); ?></td>
+          <td><?php echo h($user->role_names()); ?></td>
           <td><?php echo h($user->status_usr); ?></td>
           <td><?php echo h($user->id_img_usr); ?></td>
           <td><?php echo h($user->created_at_usr); ?></td>
           <td><?php echo h($user->updated_at_usr); ?></td>
-          <td><a class="action" href="<?php echo url_for('/users/show.php?id=' . h(u($user->id_usr))); ?>">View</a></td>
-          <td><a class="action" href="<?php echo url_for('/users/edit.php?id=' . h(u($user->id_usr))); ?>">Edit</a></td>
-          <td><a class="action" href="<?php echo url_for('/users/delete.php?id=' . h(u($user->id_usr))); ?>">Delete</a></td>
+          <td><a class="action" href="<?php echo url_for('/admin/show.php?id=' . h(u($user->id_usr))); ?>">View</a></td>
+          <td><a class="action" href="<?php echo url_for('/admin/edit.php?id=' . h(u($user->id_usr))); ?>">Edit</a></td>
+          <td><a class="action" href="<?php echo url_for('/admin/delete.php?id=' . h(u($user->id_usr))); ?>">Delete</a></td>
         </tr>
       <?php } ?>
     </table>

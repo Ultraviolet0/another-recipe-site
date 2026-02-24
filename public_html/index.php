@@ -4,119 +4,160 @@ $page_title = 'Home';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
-<main id="main-content">
+<main role="main" tabindex="-1" id="main-content">
   <section class="wrapper">
     <h2>Welcome!</h2>
     <p>This is a simple, no-nonsense website to find and share recipes without the fluff.</p>
   </section>
 
-  <section id="top-recipes-section">
+  <section id="new-recipes-section">
     <div class="wrapper">
-      <h2>Top-rated Recipes</h2>
-      <div class="recipe-grid">
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Quinoa Salad Bowl</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★★</span>
-              <span class="rating-number">5</span>
-            </div>
-            <time datetime="PT40M" class="recipe-card-time">40 mins</time>
-            <span class="recipe-card-badge">High protein, low carb</span>
-          </div>
-          <a href="#"><img src="images/quinoa-salad-bowl-270.png" width="270" height="270" alt="A colorful quinoa salad bowl." loading="lazy"></a>
-        </article>
+      <h2>Newest Recipes</h2>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Scrambled Eggs & Potatoes</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★☆</span>
-              <span class="rating-number">4.5</span>
+      <div class="recipe-grid">
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Quinoa Salad Bowl</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>5.0</span>
+                <span>(10)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">45 mins</time>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/quinoa-salad-bowl-270.png" width="270" height="270" alt="A colorful quinoa salad bowl." loading="lazy">
+            <span class="recipe-card-badge">Whole foods</span>
+          </div>
+        </a>
+
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Scrambled Eggs & Potatoes</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>4.5</span>
+                <span>(12)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">45 mins</time>
+            </div>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/breakfast-eggs-and-potatoes-270.png" width="270" height="270" alt="A plate of eggs and potatoes." loading="lazy">
             <span class="recipe-card-badge">Feel good</span>
           </div>
-          <a href="#"><img src="images/breakfast-eggs-and-potatoes-270.png" width="270" height="270" alt="A plate of eggs and potatoes." loading="lazy"></a>
-        </article>
+        </a>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Avocado Toast</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★☆</span>
-              <span class="rating-number">4.2</span>
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Avocado Toast</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>4.2</span>
+                <span>(8)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">10 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">10 mins</time>
-            <span class="recipe-card-badge">Quick and easy</span>
           </div>
-          <a href="#"><img src="images/avocado-toast-270.png" width="270" height="270" alt="A plate of avocado toast." loading="lazy"></a>
-        </article>
+          <div class="recipe-card-media">
+            <img src="images/avocado-toast-270.png" width="270" height="270" alt="A plate of avocado toast." loading="lazy">
+            <span class="recipe-card-badge">Quick & easy</span>
+          </div>
+        </a>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Steak & Root Veggies</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★★</span>
-              <span class="rating-number">4.7</span>
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Steak & Root Veggies Test Long Title Test Long Title Test Long Title</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>4.7</span>
+                <span>(11)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">40 mins</time>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/steak-and-veggies-270.png" width="270" height="270" alt="A plate of steak and vegetables." loading="lazy">
             <span class="recipe-card-badge">Hearty meal</span>
           </div>
-          <a href="#"><img src="images/steak-and-veggies-270.png" width="270" height="270" alt="A plate of steak and vegetables." loading="lazy"></a>
-        </article>
+        </a>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Garlic Aioli</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★★</span>
-              <span class="rating-number">5</span>
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Garlic Aioli</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>5.0</span>
+                <span>(6)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">15 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">15 mins</time>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/garlic-aioli-270.png" width="270" height="270" alt="A jar of homemade garlic aioli." loading="lazy">
             <span class="recipe-card-badge">Cost saving</span>
           </div>
-          <a href="#"><img src="images/garlic-aioli-270.png" width="270" height="270" alt="A jar of homemade garlic aioli." loading="lazy"></a>
-        </article>
+        </a>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Salmon & Green Veggies</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★★</span>
-              <span class="rating-number">4.6</span>
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Salmon & Green Veggies</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>4.6</span>
+                <span>(12)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">40 mins</time>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/salmon-and-veggies-270.png" width="270" height="270" alt="A plate of salmon and vegetables." loading="lazy">
             <span class="recipe-card-badge">Healthy</span>
           </div>
-          <a href="#"><img src="images/salmon-and-veggies-270.png" width="270" height="270" alt="A plate of salmon and vegetables." loading="lazy"></a>
-        </article>
+        </a>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Burrito Bowl</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★☆</span>
-              <span class="rating-number">4.4</span>
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Burrito Bowl</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>4.4</span>
+                <span>(11)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">40 mins</time>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/burrito-bowl-270.png" width="270" height="270" alt="A tex-mex burrito bowl." loading="lazy">
             <span class="recipe-card-badge">Latin influence</span>
           </div>
-          <a href="#"><img src="images/burrito-bowl-270.png" width="270" height="270" alt="A tex-mex burrito bowl." loading="lazy"></a>
-        </article>
+        </a>
 
-        <article class="recipe-card">
-          <div>
-            <h3><a href="#">Breakfast Burrito</a></h3>
-            <div class="recipe-card-rating">
-              <span aria-hidden="true">★★★★☆</span>
-              <span class="rating-number">4.5</span>
+        <a href="#" class="recipe-card">
+          <div class="recipe-card-info">
+            <h3>Breakfast Burrito</h3>
+            <div class="recipe-card-rating-time">
+              <div class="recipe-card-rating">
+                <span>⭐</span>
+                <span>4.5</span>
+                <span>(15)</span>
+              </div>
+              <time datetime="PT40M" class="recipe-card-time">25 mins</time>
             </div>
-            <time datetime="PT40M" class="recipe-card-time">25 mins</time>
+          </div>
+          <div class="recipe-card-media">
+            <img src="images/breakfast-burrito-270.png" width="270" height="270" alt="A breakfast burrito." loading="lazy">
             <span class="recipe-card-badge">On the go</span>
           </div>
-          <a href="#"><img src="images/breakfast-burrito-270.png" width="270" height="270" alt="A breakfast burrito." loading="lazy"></a>
-        </article>
+        </a>
       </div>
     </div>
   </section>

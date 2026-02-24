@@ -12,7 +12,7 @@ if(is_post_request()) {
   if($result === true) {
     $new_id = $user->id_usr;
     $session->message('The user was created successfully.');
-    redirect_to(url_for('/users/show.php?id=' . $new_id));
+    redirect_to(url_for('/admin/show.php?id=' . $new_id));
   } else { 
     // show errors
   }
@@ -29,18 +29,18 @@ if(is_post_request()) {
 
 <main id="main-content">
 
-  <a class="back-link" href="<?php echo url_for('/users/index.php'); ?>">&laquo; Back to List</a>
+  <a class="back-link" href="<?php echo url_for('/admin/index.php'); ?>">&laquo; Back to List</a>
 
-  <div class="user new">
-    <h1>Create User</h1>
+  <div>
+    <h2>Create User</h2>
 
     <?php echo display_errors($user->errors); ?>
 
-    <form action="<?php echo url_for('/users/new.php'); ?>" method="post">
+    <form action="<?php echo url_for('/admin/new.php'); ?>" method="post">
 
       <?php include('form_fields.php'); ?>
 
-      <div id="operations">
+      <div>
         <input type="submit" value="Create User">
       </div>
     </form>
