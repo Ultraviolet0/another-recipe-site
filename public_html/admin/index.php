@@ -34,7 +34,7 @@ include(SHARED_PATH . '/public_header.php'); ?>
           <td><?php echo h($user->id_usr); ?></td>
           <td><?php echo h($user->username_usr); ?></td>
           <td><?php echo h($user->email_usr); ?></td>
-          <td><?php echo h($user->role_names()); ?></td>
+          <td><?php echo h($user->get_role_names()); ?></td>
           <td><?php echo h($user->status_usr); ?></td>
           <td><?php echo h($user->id_img_usr); ?></td>
           <td><?php echo h($user->created_at_usr); ?></td>

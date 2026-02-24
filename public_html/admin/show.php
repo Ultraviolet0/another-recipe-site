@@ -39,7 +39,7 @@ include(SHARED_PATH . '/public_header.php'); ?>
       </dl>
       <dl>
         <dt>Member Roles</dt>
-        <dd><?php echo h(implode(', ', $user->role_names())); ?></dd>
+        <dd><?php echo h(implode(', ', $user->get_role_names())); ?></dd>
       </dl>
       <dl>
         <dt>Status</dt>
