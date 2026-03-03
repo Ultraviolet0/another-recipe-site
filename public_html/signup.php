@@ -28,7 +28,7 @@ if (is_post_request()) {
 
     // Mark user as logged in
     $session->login($user);
-    $session->message('You signed up successfully.');
+    $session->message('Signup successful.');
     redirect_to(url_for('/'));
   } else {
     // show errors
@@ -43,19 +43,16 @@ if (is_post_request()) {
 <?php $page_title = 'Signup'; ?>
 <?php include(SHARED_PATH . '/public_header.php'); ?>
 
-<main role="main" tabindex="-1" id="main-content">
-  <div class="wrapper">
-    <div class="container">
-      <h2>Signup</h2>
-      <?php echo display_errors($user->errors); ?>
-      <form action="<?php echo url_for('/signup.php'); ?>" method="post">
-        <?php include('admin/form_fields.php'); ?>
-        <input type="submit" value="Sign Up">
-      </form>
-      <span>Already have an account? <a href="<?php echo url_for('/login.php'); ?>">Login</a></span>
-    </div>
+<div class="wrapper">
+  <div class="container">
+    <h2>Signup</h2>
+    <?php echo display_errors($user->errors); ?>
+    <form action="<?php echo url_for('/signup.php'); ?>" method="post">
+      <?php include('admin/form_fields.php'); ?>
+      <input type="submit" value="Sign Up">
+    </form>
+    <span>Already have an account? <a href="<?php echo url_for('/login.php'); ?>">Login</a></span>
   </div>
-
-</main>
+</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

@@ -5,3 +5,6 @@
 .env.local
 .env.*
 !.env.example
+
+# Ignore uploads
+public_html/uploads/

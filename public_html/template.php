@@ -4,8 +4,10 @@ $page_title = 'REPLACE ME';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
-<main role="main" tabindex="-1" id="main-content">
-
-</main>
+<div class="wrapper">
+  <div class="container">
+    
+  </div>
+</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

@@ -57,7 +57,7 @@ CREATE TABLE `recipe_rcp` (
   `id_rcp` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `id_usr_rcp` INT UNSIGNED NOT NULL,
   `title_rcp` VARCHAR(255) NOT NULL,
-  `description_rcp` VARCHAR(255),
+  `description_rcp` TEXT,
   `serving_rcp` DECIMAL(6,2) UNSIGNED,
   `id_bdg_rcp` INT UNSIGNED,
   `privacy_rcp` ENUM ('public', 'unlisted', 'private') NOT NULL DEFAULT 'public',

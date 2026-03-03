@@ -11,8 +11,13 @@ require_once(PROJECT_PATH . '/vendor/autoload.php');
 $dotenv = Dotenv\Dotenv::createImmutable(PROJECT_PATH);
 $dotenv->load();
 
-$public_dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-$public_dir = ($public_dir === '.' || $public_dir === '/') ? '' : rtrim($public_dir, '/');
+$script_name = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+$pos = strpos($script_name, '/public_html');
+if ($pos !== false) {
+  $public_dir = substr($script_name, 0, $pos) . '/public_html';
+} else {
+  $public_dir = '';
+}
 define('WWW_ROOT', $public_dir);
 
 $db_config = require(PRIVATE_PATH . '/config/db_credentials.php');
@@ -21,6 +26,8 @@ require_once('functions.php');
 require_once('status_error_functions.php');
 require_once('database_functions.php');
 require_once('validation_functions.php');
+require_once(SHARED_PATH . '/recipe_draft_functions.php');
+require_once(SHARED_PATH . '/image_upload_functions.php');
 
 // Autoload class definitions
 function my_autoload($class)
