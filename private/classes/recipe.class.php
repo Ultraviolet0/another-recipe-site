@@ -119,6 +119,59 @@ class Recipe extends DatabaseObject
     }
   }
 
+  public function update_with_children(
+    $ingredients = [],
+    $directions = [],
+    $photo_files = null,
+    $upload_root_public = null,
+    $meal_type_ids = [],
+    $cuisine_ids = [],
+    $dietary_style_ids = []
+  ) {
+    $this->validate();
+    if (!empty($this->errors)) {
+      return false;
+    }
+
+    $child_errors = $this->validate_children($ingredients, $directions, $photo_files);
+    if (!empty($child_errors)) {
+      $this->errors = array_merge($this->errors, $child_errors);
+      return false;
+    }
+
+    self::$database->begin_transaction();
+
+    try {
+      $ok = $this->save(); // because id_rcp exists, this runs update()
+      if (!$ok) {
+        throw new Exception("Recipe update failed.");
+      }
+
+      $recipe_id = $this->id_rcp;
+
+      // Clear and rebuild child relationships
+      $this->delete_child_rows($recipe_id);
+
+      $this->insert_meal_types($recipe_id, $meal_type_ids);
+      $this->insert_cuisines($recipe_id, $cuisine_ids);
+      $this->insert_dietary_styles($recipe_id, $dietary_style_ids);
+      $this->insert_ingredients($recipe_id, $ingredients);
+      $this->insert_directions($recipe_id, $directions);
+
+      // For now: only ADD new uploaded images, do not delete existing ones
+      if ($photo_files && $upload_root_public) {
+        $this->insert_images($recipe_id, $photo_files, $upload_root_public);
+      }
+
+      self::$database->commit();
+      return true;
+    } catch (Exception $e) {
+      self::$database->rollback();
+      $this->errors[] = "Save failed: " . $e->getMessage();
+      return false;
+    }
+  }
+
   protected function validate_children($ingredients, $directions, $photo_files = null)
   {
     $errors = [];
@@ -216,6 +269,76 @@ class Recipe extends DatabaseObject
     }
 
     return $errors;
+  }
+
+  protected function delete_child_rows($recipe_id)
+  {
+    $recipe_id = self::$database->escape_string($recipe_id);
+
+    $queries = [
+      "DELETE FROM recipe_meal_type_rcpmty WHERE id_rcp_rcpmty = '{$recipe_id}'",
+      "DELETE FROM recipe_cuisine_rcpcsn WHERE id_rcp_rcpcsn = '{$recipe_id}'",
+      "DELETE FROM recipe_dietary_style_rcpdst WHERE id_rcp_rcpdst = '{$recipe_id}'",
+      "DELETE FROM recipe_ingredient_rcping WHERE id_rcp_rcping = '{$recipe_id}'",
+      "DELETE FROM direction_dir WHERE id_rcp_dir = '{$recipe_id}'",
+    ];
+
+    foreach ($queries as $sql) {
+      $ok = self::$database->query($sql);
+      if (!$ok) {
+        throw new Exception("Failed to clear existing recipe data: " . self::$database->error);
+      }
+    }
+  }
+
+  public function draft_data(): array
+  {
+    $recipe = [
+      'title_rcp' => $this->title_rcp,
+      'description_rcp' => $this->description_rcp,
+      'serving_rcp' => $this->serving_rcp,
+      'id_bdg_rcp' => $this->id_bdg_rcp,
+      'privacy_rcp' => $this->privacy_rcp,
+      'prep_time_minutes_rcp' => $this->prep_time_minutes_rcp,
+      'cook_time_minutes_rcp' => $this->cook_time_minutes_rcp,
+      'youtube_url_rcp' => $this->youtube_url_rcp,
+    ];
+
+    $ingredients = [];
+    foreach ($this->ingredients() as $row) {
+      $ingredients[] = [
+        'quantity_rcping' => $row['quantity_rcping'],
+        'id_mes_rcping' => $row['id_mes'],
+        'name_ing' => $row['name_ing'],
+      ];
+    }
+
+    $directions = [];
+    foreach ($this->directions() as $row) {
+      $directions[] = [
+        'instruction_dir' => $row['instruction_dir'],
+      ];
+    }
+
+    return [
+      'recipe' => $recipe,
+      'ingredients' => !empty($ingredients) ? $ingredients : array_fill(0, 6, [
+        'quantity_rcping' => '',
+        'id_mes_rcping' => '',
+        'name_ing' => ''
+      ]),
+      'directions' => !empty($directions) ? $directions : array_fill(0, 6, [
+        'instruction_dir' => ''
+      ]),
+      'meal_types' => $this->meal_type_ids(),
+      'cuisines' => $this->cuisine_ids(),
+      'dietary_styles' => $this->dietary_style_ids(),
+      'counts' => [
+        'ingredients' => max(6, count($ingredients)),
+        'directions' => max(6, count($directions)),
+      ],
+      'errors' => []
+    ];
   }
 
   protected function insert_meal_types($recipe_id, $meal_type_ids)
@@ -442,12 +565,66 @@ class Recipe extends DatabaseObject
     }
 
     // private
-    return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in() || $session->is_super_admin_logged_in();
+    return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in();
   }
 
   public function can_edit(Session $session): bool
   {
-    return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in() || $session->is_super_admin_logged_in();
+    return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in();
+  }
+
+  public function meal_type_ids(): array
+  {
+    $recipe_id = self::$database->escape_string($this->id_rcp);
+    $sql = "SELECT id_mty_rcpmty
+          FROM recipe_meal_type_rcpmty
+          WHERE id_rcp_rcpmty = '{$recipe_id}'";
+
+    $ids = [];
+    $res = self::$database->query($sql);
+    if ($res) {
+      while ($row = $res->fetch_assoc()) {
+        $ids[] = (string)$row['id_mty_rcpmty'];
+      }
+      $res->free();
+    }
+    return $ids;
+  }
+
+  public function cuisine_ids(): array
+  {
+    $recipe_id = self::$database->escape_string($this->id_rcp);
+    $sql = "SELECT id_csn_rcpcsn
+          FROM recipe_cuisine_rcpcsn
+          WHERE id_rcp_rcpcsn = '{$recipe_id}'";
+
+    $ids = [];
+    $res = self::$database->query($sql);
+    if ($res) {
+      while ($row = $res->fetch_assoc()) {
+        $ids[] = (string)$row['id_csn_rcpcsn'];
+      }
+      $res->free();
+    }
+    return $ids;
+  }
+
+  public function dietary_style_ids(): array
+  {
+    $recipe_id = self::$database->escape_string($this->id_rcp);
+    $sql = "SELECT id_dst_rcpdst
+          FROM recipe_dietary_style_rcpdst
+          WHERE id_rcp_rcpdst = '{$recipe_id}'";
+
+    $ids = [];
+    $res = self::$database->query($sql);
+    if ($res) {
+      while ($row = $res->fetch_assoc()) {
+        $ids[] = (string)$row['id_dst_rcpdst'];
+      }
+      $res->free();
+    }
+    return $ids;
   }
 
   public function ingredients(): array
@@ -456,6 +633,7 @@ class Recipe extends DatabaseObject
 
     $sql = "SELECT
             ri.quantity_rcping,
+            ri.id_mes_rcping AS id_mes, 
             m.abbr_mes,
             m.name_mes,
             i.name_ing
@@ -644,5 +822,172 @@ class Recipe extends DatabaseObject
             updated_at_rtg=CURRENT_TIMESTAMP";
 
     return (bool) self::$database->query($sql);
+  }
+
+  public static function visible_where_sql(Session $session): string
+  {
+    $current_user_id = $session->get_user_id();
+
+    if ($session->is_admin_logged_in() || $session->is_super_admin_logged_in()) {
+      return "1=1";
+    }
+
+    if ($current_user_id !== null) {
+      $safe_user_id = self::$database->escape_string($current_user_id);
+      return "(privacy_rcp IN ('public', 'unlisted') OR (privacy_rcp = 'private' AND id_usr_rcp = '{$safe_user_id}'))";
+    }
+
+    return "privacy_rcp IN ('public', 'unlisted')";
+  }
+
+  protected static function sanitize_id_array($values): array
+  {
+    if (!is_array($values)) {
+      return [];
+    }
+
+    $values = array_values(array_unique($values));
+    $clean = [];
+
+    foreach ($values as $value) {
+      if (ctype_digit((string)$value)) {
+        $clean[] = (int)$value;
+      }
+    }
+
+    return $clean;
+  }
+
+  protected static function build_filter_join_and_where(array $meal_type_ids = [], array $cuisine_ids = [], array $dietary_style_ids = []): array
+  {
+    $joins = [];
+    $where = [];
+
+    $meal_type_ids = static::sanitize_id_array($meal_type_ids);
+    $cuisine_ids = static::sanitize_id_array($cuisine_ids);
+    $dietary_style_ids = static::sanitize_id_array($dietary_style_ids);
+
+    if (!empty($meal_type_ids)) {
+      $joins[] = "JOIN recipe_meal_type_rcpmty rm ON rm.id_rcp_rcpmty = recipe_rcp.id_rcp";
+      $where[] = "rm.id_mty_rcpmty IN (" . implode(', ', $meal_type_ids) . ")";
+    }
+
+    if (!empty($cuisine_ids)) {
+      $joins[] = "JOIN recipe_cuisine_rcpcsn rc ON rc.id_rcp_rcpcsn = recipe_rcp.id_rcp";
+      $where[] = "rc.id_csn_rcpcsn IN (" . implode(', ', $cuisine_ids) . ")";
+    }
+
+    if (!empty($dietary_style_ids)) {
+      $joins[] = "JOIN recipe_dietary_style_rcpdst rd ON rd.id_rcp_rcpdst = recipe_rcp.id_rcp";
+      $where[] = "rd.id_dst_rcpdst IN (" . implode(', ', $dietary_style_ids) . ")";
+    }
+
+    return [
+      'joins' => $joins,
+      'where' => $where
+    ];
+  }
+
+  public static function count_filtered(Session $session, array $meal_type_ids = [], array $cuisine_ids = [], array $dietary_style_ids = []): int
+  {
+    $filter_parts = static::build_filter_join_and_where($meal_type_ids, $cuisine_ids, $dietary_style_ids);
+    $visibility_sql = static::visible_where_sql($session);
+
+    $sql = "SELECT COUNT(DISTINCT recipe_rcp.id_rcp) AS recipe_count ";
+    $sql .= "FROM recipe_rcp ";
+
+    if (!empty($filter_parts['joins'])) {
+      $sql .= implode(' ', $filter_parts['joins']) . ' ';
+    }
+
+    $where = [$visibility_sql];
+    $where = array_merge($where, $filter_parts['where']);
+
+    if (!empty($where)) {
+      $sql .= "WHERE " . implode(' AND ', $where) . " ";
+    }
+
+    $result = self::$database->query($sql);
+    if (!$result) {
+      exit("Database query failed: " . self::$database->error);
+    }
+
+    $row = $result->fetch_assoc();
+    $result->free();
+
+    return (int)($row['recipe_count'] ?? 0);
+  }
+
+  public static function find_filtered_paginated(
+    Session $session,
+    int $page = 1,
+    int $per_page = 12,
+    array $meal_type_ids = [],
+    array $cuisine_ids = [],
+    array $dietary_style_ids = []
+  ): array {
+    $filter_parts = static::build_filter_join_and_where($meal_type_ids, $cuisine_ids, $dietary_style_ids);
+    $visibility_sql = static::visible_where_sql($session);
+
+    $page = max(1, $page);
+    $per_page = max(1, $per_page);
+    $offset = ($page - 1) * $per_page;
+
+    $sql = "SELECT DISTINCT recipe_rcp.* ";
+    $sql .= "FROM recipe_rcp ";
+
+    if (!empty($filter_parts['joins'])) {
+      $sql .= implode(' ', $filter_parts['joins']) . ' ';
+    }
+
+    $where = [$visibility_sql];
+    $where = array_merge($where, $filter_parts['where']);
+
+    if (!empty($where)) {
+      $sql .= "WHERE " . implode(' AND ', $where) . " ";
+    }
+
+    $sql .= "ORDER BY updated_at_rcp DESC ";
+    $sql .= "LIMIT {$per_page} OFFSET {$offset}";
+
+    return static::find_by_sql($sql);
+  }
+
+  public function total_time_minutes(): int
+  {
+    return (int)$this->prep_time_minutes_rcp + (int)$this->cook_time_minutes_rcp;
+  }
+
+  public function rating_display(): array
+  {
+    return $this->rating_summary();
+  }
+
+  public function first_image_270_url(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    return url_for('/uploads/recipes/270/' . u($images[0]));
+  }
+
+  public function badge_name(): ?string
+  {
+    if (is_blank($this->id_bdg_rcp)) {
+      return null;
+    }
+
+    $safe_id = self::$database->escape_string($this->id_bdg_rcp);
+    $sql = "SELECT name_bdg FROM badge_bdg WHERE id_bdg = '{$safe_id}' LIMIT 1";
+
+    $result = self::$database->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+      $result->free();
+      return $row['name_bdg'];
+    }
+
+    return null;
   }
 }

@@ -32,6 +32,12 @@ function recipe_default_draft()
   ];
 }
 
+function recipe_load_new_draft() {
+  $_SESSION['recipe_draft'] = recipe_default_draft();
+  $_SESSION['recipe_draft_mode'] = 'new';
+  unset($_SESSION['recipe_draft_recipe_id']);
+}
+
 function recipe_get_draft()
 {
   if (!isset($_SESSION['recipe_draft'])) {
@@ -40,14 +46,15 @@ function recipe_get_draft()
   return $_SESSION['recipe_draft'];
 }
 
+function recipe_clear_draft() {
+  unset($_SESSION['recipe_draft']);
+  unset($_SESSION['recipe_draft_mode']);
+  unset($_SESSION['recipe_draft_recipe_id']);
+}
+
 function recipe_save_draft($draft)
 {
   $_SESSION['recipe_draft'] = $draft;
-}
-
-function recipe_clear_draft()
-{
-  unset($_SESSION['recipe_draft']);
 }
 
 function recipe_merge_post_into_draft($draft, $post)
@@ -108,4 +115,52 @@ function recipe_add_direction_row($draft)
   $draft['counts']['directions'] = ($draft['counts']['directions'] ?? 0) + 1;
   $draft['directions'][] = ['instruction_dir' => ''];
   return $draft;
+}
+
+function recipe_load_edit_draft(Recipe $recipe) {
+  $_SESSION['recipe_draft'] = $recipe->draft_data();
+  $_SESSION['recipe_draft_mode'] = 'edit';
+  $_SESSION['recipe_draft_recipe_id'] = (string)$recipe->id_rcp;
+}
+
+function recipes_index_page_url($page_num, $meal_types = [], $cuisines = [], $dietary_styles = [])
+{
+  $params = ['page' => $page_num];
+
+  if (!empty($meal_types)) {
+    $params['meal_types'] = array_values($meal_types);
+  }
+
+  if (!empty($cuisines)) {
+    $params['cuisines'] = array_values($cuisines);
+  }
+
+  if (!empty($dietary_styles)) {
+    $params['dietary_styles'] = array_values($dietary_styles);
+  }
+
+  return url_for('/recipes/index.php?' . http_build_query($params));
+}
+
+function recipes_index_remove_filter_url($type, $remove_id, $meal_types = [], $cuisines = [], $dietary_styles = [])
+{
+  $filters = [
+    'meal_types' => array_values($meal_types),
+    'cuisines' => array_values($cuisines),
+    'dietary_styles' => array_values($dietary_styles),
+  ];
+
+  if (isset($filters[$type])) {
+    $filters[$type] = array_values(array_filter(
+      $filters[$type],
+      fn($id) => (string)$id !== (string)$remove_id
+    ));
+  }
+
+  return recipes_index_page_url(
+    1,
+    $filters['meal_types'],
+    $filters['cuisines'],
+    $filters['dietary_styles']
+  );
 }

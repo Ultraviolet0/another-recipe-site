@@ -8,9 +8,13 @@
   <meta charset="utf-8">
   <link href="<?php echo url_for('/css/styles.css'); ?>" rel="stylesheet">
   <link rel="icon" href="<?php echo url_for('/favicon.ico'); ?>" sizes="any">
+  <script src="<?php echo url_for('/js/scripts.js'); ?>" defer></script>
 </head>
 
 <body>
+  <div class="page-loading">
+    <div class="spinner"></div>
+  </div>
   <a href="#main-content" id="skip-link">Skip to main content</a>
   <header role="banner">
     <div class="wrapper">

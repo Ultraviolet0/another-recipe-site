@@ -26,8 +26,8 @@ require_once('functions.php');
 require_once('status_error_functions.php');
 require_once('database_functions.php');
 require_once('validation_functions.php');
-require_once(SHARED_PATH . '/recipe_draft_functions.php');
-require_once(SHARED_PATH . '/image_upload_functions.php');
+require_once('recipe_functions.php');
+require_once('image_upload_functions.php');
 
 // Autoload class definitions
 function my_autoload($class)

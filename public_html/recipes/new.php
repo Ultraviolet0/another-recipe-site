@@ -2,15 +2,23 @@
 require_once('../../private/initialize.php');
 require_login();
 
+$draft_mode = $_SESSION['recipe_draft_mode'] ?? null;
+
+
+if (
+  !isset($_SESSION['recipe_draft']) ||
+  $draft_mode !== 'new'
+) {
+  recipe_clear_draft();
+  recipe_load_new_draft();
+}
+
 $draft = recipe_get_draft();
 
-// On GET we create a Recipe object purely so display_errors() has something familiar
 $recipe = new Recipe($draft['recipe'] ?? []);
 $recipe->errors = $draft['errors'] ?? [];
 
 if (is_post_request()) {
-
-  // Merge submitted values into draft first so no data is lost
   $draft = recipe_merge_post_into_draft($draft, $_POST);
 
   $action = $_POST['action'] ?? '';

@@ -73,7 +73,12 @@ include(SHARED_PATH . '/public_header.php');
 
       <div class="recipe-meta">
         <?php if (!is_blank($recipe->serving_rcp)) { ?>
-          <span><strong>Servings:</strong> <?php echo h(format_number_clean($recipe->serving_rcp)); ?></span>
+          <span>
+            <strong>Servings:</strong>
+            <span
+              class="recipe-servings-value"
+              data-base-servings="<?php echo h($recipe->serving_rcp); ?>"><?php echo h(format_quantity_kitchen($recipe->serving_rcp)); ?></span>
+          </span>
         <?php } ?>
 
         <span><strong>Prep:</strong> <?php echo h((int)$recipe->prep_time_minutes_rcp); ?> min</span>
@@ -91,6 +96,7 @@ include(SHARED_PATH . '/public_header.php');
       <div class="recipe-actions">
         <?php if ($recipe->can_edit($session)) { ?>
           <a class="button" href="<?php echo url_for('/recipes/edit.php?id=' . h(u($recipe->id_rcp))); ?>">Edit Recipe</a>
+          <a class="button button-danger" href="<?php echo url_for('/recipes/delete.php?id=' . h(u($recipe->id_rcp))); ?>">Delete Recipe</a>
         <?php } ?>
 
         <!-- Placeholder for later -->
@@ -183,10 +189,10 @@ include(SHARED_PATH . '/public_header.php');
 
           <!-- Placeholder buttons for JS scaling later -->
           <div class="scale-buttons">
-            <button type="button" class="button" disabled>½x</button>
-            <button type="button" class="button" disabled>1x</button>
-            <button type="button" class="button" disabled>2x</button>
-            <button type="button" class="button" disabled>3x</button>
+            <button type="button" class="button scale-button" data-scale="0.5">½x</button>
+            <button type="button" class="button scale-button is-active" data-scale="1">1x</button>
+            <button type="button" class="button scale-button" data-scale="2">2x</button>
+            <button type="button" class="button scale-button" data-scale="3">3x</button>
           </div>
 
           <?php if (empty($ingredients)) { ?>
@@ -200,7 +206,9 @@ include(SHARED_PATH . '/public_header.php');
                   $abbr = $ing['abbr_mes'] ?? '';
                   $iname = $ing['name_ing'] ?? '';
                   ?>
-                  <span class="qty"><?php echo h($qty); ?></span>
+                  <span
+                    class="qty"
+                    data-base-qty="<?php echo h($ing['quantity_rcping']); ?>"><?php echo h(format_quantity_kitchen($qty)); ?></span></span>
                   <?php if (!is_blank($abbr)) { ?>
                     <span class="unit"><?php echo h($abbr); ?></span>
                   <?php } ?>
