@@ -1,19 +1,129 @@
-document.body.classList.add('js');
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.classList.add('js');
+  init();
+});
 
 function initRecipeFilters() {
   const filterForm = document.querySelector('.recipe-filters form');
   if (!filterForm) return;
 
-  const selects = filterForm.querySelectorAll('select');
+  const inputs = filterForm.querySelectorAll('input[type="checkbox"]');
+  const menus = filterForm.querySelectorAll('.filter-menu');
 
-  selects.forEach((select) => {
-    select.addEventListener('change', () => {
+  const restoreId = sessionStorage.getItem('recipeFilterFocusId');
+  const restoreMenu = sessionStorage.getItem('recipeFilterMenu');
+
+  if (restoreMenu) {
+    const menuEl = filterForm.querySelector(`.filter-menu[data-filter-menu="${restoreMenu}"]`);
+    if (menuEl) {
+      menuEl.classList.add('is-open');
+    }
+  }
+
+  if (restoreId) {
+    const restoreInput = document.getElementById(restoreId);
+    if (restoreInput) {
+      setTimeout(() => {
+        restoreInput.focus();
+        restoreInput.scrollIntoView({ block: 'nearest' });
+      }, 0);
+    }
+
+    sessionStorage.removeItem('recipeFilterFocusId');
+    sessionStorage.removeItem('recipeFilterMenu');
+  }
+
+  inputs.forEach((input) => {
+    input.addEventListener('change', () => {
       if (document.body.classList.contains('loading')) return;
+
+      sessionStorage.setItem('recipeFilterFocusId', input.id);
+      sessionStorage.setItem('recipeFilterMenu', input.dataset.filterMenu || '');
 
       document.body.classList.add('loading');
       filterForm.submit();
     });
   });
+
+  document.addEventListener('focusin', (event) => {
+    const currentMenu = event.target.closest('.filter-menu');
+
+    if (!filterForm.contains(event.target)) {
+      menus.forEach((menu) => menu.classList.remove('is-open'));
+      return;
+    }
+
+    menus.forEach((menu) => {
+      if (menu !== currentMenu) {
+        menu.classList.remove('is-open');
+      }
+    });
+
+    if (currentMenu) {
+      currentMenu.classList.add('is-open');
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!filterForm.contains(event.target)) {
+      menus.forEach((menu) => menu.classList.remove('is-open'));
+    }
+  });
+}
+
+function initIngredientScaling() {
+  const scaleButtons = document.querySelectorAll('.scale-button');
+  const qtySpans = document.querySelectorAll('.recipe-ingredients .qty[data-base-qty]');
+  const servingsValue = document.querySelector('.recipe-servings-value[data-base-servings]');
+
+  if (!scaleButtons.length || !qtySpans.length) return;
+
+  function applyScale(scale) {
+    const numericScale = Number(scale || '1');
+
+    qtySpans.forEach((qtySpan) => {
+      const baseQty = Number(qtySpan.dataset.baseQty || '0');
+      const scaledQty = baseQty * numericScale;
+      qtySpan.textContent = formatQuantityKitchen(scaledQty);
+    });
+
+    if (servingsValue) {
+      const baseServings = Number(servingsValue.dataset.baseServings || '0');
+      const scaledServings = baseServings * numericScale;
+      servingsValue.textContent = formatQuantityKitchen(scaledServings);
+    }
+
+    scaleButtons.forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.scale === String(scale));
+    });
+
+    const url = new URL(window.location.href);
+
+    if (numericScale === 1) {
+      url.searchParams.delete('scale');
+    } else {
+      url.searchParams.set('scale', numericScale);
+    }
+
+    window.history.replaceState({}, '', url);
+  }
+
+  scaleButtons.forEach((button) => {
+    button.disabled = false;
+
+    button.addEventListener('click', () => {
+      applyScale(button.dataset.scale || '1');
+    });
+  });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialScale = urlParams.get('scale');
+
+  if (initialScale && [...scaleButtons].some((btn) => btn.dataset.scale === initialScale)) {
+    applyScale(initialScale);
+  } else {
+    applyScale('1');
+  }
 }
 
 function formatQuantityKitchen(value) {
@@ -68,46 +178,165 @@ function formatQuantityKitchen(value) {
   return str;
 }
 
-function initIngredientScaling() {
-  const scaleButtons = document.querySelectorAll('.scale-button');
-  const qtySpans = document.querySelectorAll('.recipe-ingredients .qty[data-base-qty]');
-  const servingsValue = document.querySelector('.recipe-servings-value[data-base-servings]');
+function initAutoRating() {
+  const ratingForm = document.querySelector('.rating-form form');
+  if (!ratingForm) return;
 
-  if (!scaleButtons.length || !qtySpans.length) return;
+  const isLoggedIn = ratingForm.dataset.isLoggedIn === 'true';
+  const loginUrl = ratingForm.dataset.loginUrl || '';
+  const radios = ratingForm.querySelectorAll('input[type="radio"][name="rating"]');
+  const clearButton = ratingForm.querySelector('.rating-clear-button');
 
-  scaleButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const scale = Number(button.dataset.scale || '1');
-
-      qtySpans.forEach((qtySpan) => {
-        const baseQty = Number(qtySpan.dataset.baseQty || '0');
-        const scaledQty = baseQty * scale;
-        qtySpan.textContent = formatQuantityKitchen(scaledQty);
-      });
-
-      if (servingsValue) {
-        const baseServings = Number(servingsValue.dataset.baseServings || '0');
-        const scaledServings = baseServings * scale;
-        servingsValue.textContent = formatQuantityKitchen(scaledServings);
+  radios.forEach((radio) => {
+    radio.addEventListener('change', () => {
+      if (!isLoggedIn) {
+        if (loginUrl) {
+          window.location.href = loginUrl;
+        }
+        return;
       }
 
-      scaleButtons.forEach((btn) => btn.classList.remove('is-active'));
-      button.classList.add('is-active');
+      const formData = new FormData(ratingForm);
+
+      fetch(ratingForm.action, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+      }).then(() => {
+        window.location.reload();
+      });
+    });
+  });
+
+  if (clearButton) {
+    clearButton.addEventListener('click', (event) => {
+      if (!isLoggedIn) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const formData = new FormData(ratingForm);
+      formData.delete('save_rating');
+      formData.set('clear_rating', '1');
+
+      fetch(ratingForm.action, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+      }).then(() => {
+        window.location.reload();
+      });
+    });
+  }
+}
+
+function initRecipeImageGallery() {
+  const heroWrap = document.querySelector('.recipe-image-hero');
+  const heroLink = document.querySelector('.recipe-hero-link');
+  const thumbs = document.querySelectorAll('.recipe-thumb');
+
+  if (!heroWrap || !heroLink || !thumbs.length) return;
+
+  let currentImage = heroWrap.querySelector('.recipe-hero-image-current');
+  let nextImage = heroWrap.querySelector('.recipe-hero-image-next');
+  let isTransitioning = false;
+
+  thumbs.forEach((thumb) => {
+    thumb.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      if (isTransitioning) return;
+
+      const fullUrl = thumb.dataset.fullUrl;
+      const altText = thumb.dataset.alt || currentImage.alt;
+
+      if (!fullUrl || currentImage.src === fullUrl) return;
+
+      isTransitioning = true;
+
+      thumbs.forEach((t) => t.classList.remove('is-active'));
+      thumb.classList.add('is-active');
+
+      const loader = new Image();
+
+      loader.onload = () => {
+        nextImage.src = fullUrl;
+        nextImage.alt = altText;
+
+        // let browser paint new src before transition
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            heroWrap.classList.add('is-transitioning');
+          });
+        });
+
+        setTimeout(() => {
+          heroLink.href = fullUrl;
+
+          // swap class roles
+          currentImage.classList.remove('recipe-hero-image-current');
+          currentImage.classList.add('recipe-hero-image-next');
+
+          nextImage.classList.remove('recipe-hero-image-next');
+          nextImage.classList.add('recipe-hero-image-current');
+
+          // update JS refs
+          const oldCurrent = currentImage;
+          currentImage = nextImage;
+          nextImage = oldCurrent;
+
+          // clear old hidden image so it won't flash stale content later
+          nextImage.src = '';
+          nextImage.alt = '';
+
+          heroWrap.classList.remove('is-transitioning');
+          isTransitioning = false;
+        }, 250);
+      };
+
+      loader.src = fullUrl;
     });
   });
 }
 
-function initRecipeImageGallery() {
-  const thumbs = document.querySelectorAll('.recipe-thumb');
-  if (!thumbs.length) return;
+function initHomeCarousels() {3
 
-  // placeholder for later
+  const wrappers = document.querySelectorAll('.home-carousel-wrapper');
+
+  wrappers.forEach((wrapper) => {
+
+    const carousel = wrapper.querySelector('.home-carousel');
+    const prev = wrapper.querySelector('.carousel-prev');
+    const next = wrapper.querySelector('.carousel-next');
+
+    if (!carousel || !prev || !next) return;
+
+    const card = carousel.querySelector('.recipe-card');
+    const scrollAmount = card ? card.offsetWidth + 20 : 300;
+
+    prev.addEventListener('click', () => {
+      carousel.scrollBy({
+        left: -scrollAmount,
+        behavior: 'smooth'
+      });
+    });
+
+    next.addEventListener('click', () => {
+      carousel.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth'
+      });
+    });
+
+  });
+
 }
 
 function init() {
   initRecipeFilters();
   initIngredientScaling();
+  initAutoRating();
   initRecipeImageGallery();
+  initHomeCarousels();
 }
-
-init();

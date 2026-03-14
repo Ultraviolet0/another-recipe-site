@@ -70,19 +70,17 @@ if (is_post_request()) {
 <?php $page_title = 'Add Recipe'; ?>
 <?php include(SHARED_PATH . '/public_header.php'); ?>
 
-<div class="wrapper">
-  <div class="container">
+  <div class="recipe-form">
     <h2>Add Recipe</h2>
-    <p>Fields marked with a * are required.</p>
+    <p class="form-help">Fields marked with a * are required.</p>
     <?php echo display_errors($recipe->errors); ?>
     <form action="<?php echo url_for('/recipes/new.php'); ?>" method="post" enctype="multipart/form-data">
       <?php include('form_fields.php'); ?>
       <div>
-        <button type="submit" name="action" value="save_recipe">Add Recipe</button>
-        <button type="submit" name="action" value="discard_draft" formnovalidate>Discard Draft</button>
+        <button type="submit" class="button" name="action" value="save_recipe">Add Recipe</button>
+        <button type="submit" class="button button-secondary" name="action" value="discard_draft" formnovalidate>Discard Draft</button>
       </div>
     </form>
   </div>
-</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

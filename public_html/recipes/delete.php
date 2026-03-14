@@ -60,7 +60,7 @@ include(SHARED_PATH . '/public_header.php');
         Yes, Delete Recipe
       </button>
 
-      <button type="submit" name="confirm" value="no" class="button">
+      <button type="submit" name="confirm" value="no" class="button button-secondary">
         Cancel
       </button>
 

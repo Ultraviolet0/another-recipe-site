@@ -96,10 +96,9 @@ $page_title = 'Edit Recipe';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
-<div class="wrapper">
-  <div class="container">
+  <div class="recipe-form">
     <h2>Edit Recipe</h2>
-    <p>Fields marked with a * are required.</p>
+    <p class="form-help">Fields marked with a * are required.</p>
 
     <?php echo display_errors($recipe_for_errors->errors); ?>
 
@@ -107,11 +106,10 @@ include(SHARED_PATH . '/public_header.php');
       <?php include('form_fields.php'); ?>
 
       <div>
-        <button type="submit" name="action" value="save_recipe">Save Changes</button>
-        <button type="submit" name="action" value="discard_draft" formnovalidate>Discard Changes</button>
+        <button type="submit" class="button" name="action" value="save_recipe">Save Changes</button>
+        <button type="submit" class="button button-secondary" name="action" value="discard_draft" formnovalidate>Discard Changes</button>
       </div>
     </form>
   </div>
-</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

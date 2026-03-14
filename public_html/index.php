@@ -1,166 +1,245 @@
 <?php
 require_once('../private/initialize.php');
+
+$newest_recipes = Recipe::find_homepage_newest($session, 6);
+$top_rated_recipes = Recipe::find_homepage_top_rated($session, 6);
+$quick_recipes = Recipe::find_homepage_quick_recipes($session, 6);
+
 $page_title = 'Home';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
-<main role="main" tabindex="-1" id="main-content">
-  <section class="wrapper">
-    <h2>Welcome!</h2>
-    <p>This is a simple, no-nonsense website to find and share recipes without the fluff.</p>
-  </section>
+<div class="home-page">
 
-  <section id="new-recipes-section">
+  <section class="home-hero">
     <div class="wrapper">
-      <h2>Newest Recipes</h2>
+      <div class="home-hero-content">
+        <p class="home-hero-kicker">Welcome to anotherrecipe.site</p>
+        <h2>Find and share recipes without the fluff.</h2>
+        <p class="home-hero-text">Another Recipe Site is a simple, no-nonsense place to discover recipes, save favorites, and share your own cooking with the community.</p>
 
-      <div class="recipe-grid">
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Quinoa Salad Bowl</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>5.0</span>
-                <span>(10)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/quinoa-salad-bowl-270.png" width="270" height="270" alt="A colorful quinoa salad bowl." loading="lazy">
-            <span class="recipe-card-badge">Whole foods</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Scrambled Eggs & Potatoes</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>4.5</span>
-                <span>(12)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">45 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/breakfast-eggs-and-potatoes-270.png" width="270" height="270" alt="A plate of eggs and potatoes." loading="lazy">
-            <span class="recipe-card-badge">Feel good</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Avocado Toast</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>4.2</span>
-                <span>(8)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">10 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/avocado-toast-270.png" width="270" height="270" alt="A plate of avocado toast." loading="lazy">
-            <span class="recipe-card-badge">Quick & easy</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Steak & Root Veggies Test Long Title Test Long Title Test Long Title</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>4.7</span>
-                <span>(11)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/steak-and-veggies-270.png" width="270" height="270" alt="A plate of steak and vegetables." loading="lazy">
-            <span class="recipe-card-badge">Hearty meal</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Garlic Aioli</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>5.0</span>
-                <span>(6)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">15 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/garlic-aioli-270.png" width="270" height="270" alt="A jar of homemade garlic aioli." loading="lazy">
-            <span class="recipe-card-badge">Cost saving</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Salmon & Green Veggies</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>4.6</span>
-                <span>(12)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/salmon-and-veggies-270.png" width="270" height="270" alt="A plate of salmon and vegetables." loading="lazy">
-            <span class="recipe-card-badge">Healthy</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Burrito Bowl</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>4.4</span>
-                <span>(11)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">40 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/burrito-bowl-270.png" width="270" height="270" alt="A tex-mex burrito bowl." loading="lazy">
-            <span class="recipe-card-badge">Latin influence</span>
-          </div>
-        </a>
-
-        <a href="#" class="recipe-card">
-          <div class="recipe-card-info">
-            <h3>Breakfast Burrito</h3>
-            <div class="recipe-card-rating-time">
-              <div class="recipe-card-rating">
-                <span>⭐</span>
-                <span>4.5</span>
-                <span>(15)</span>
-              </div>
-              <time datetime="PT40M" class="recipe-card-time">25 mins</time>
-            </div>
-          </div>
-          <div class="recipe-card-media">
-            <img src="images/breakfast-burrito-270.png" width="270" height="270" alt="A breakfast burrito." loading="lazy">
-            <span class="recipe-card-badge">On the go</span>
-          </div>
-        </a>
+        <div class="home-hero-actions">
+          <?php if ($session->is_logged_in()) { ?>
+            <a class="button" href="<?php echo url_for('/recipes/new.php'); ?>">Add Your Recipe</a>
+          <?php } else { ?>
+            <a class="button" href="<?php echo url_for('/signup.php'); ?>">Create a Free Account</a>
+          <?php } ?>
+          <a class="button button-secondary" href="<?php echo url_for('/recipes'); ?>">Browse Recipes</a>
+        </div>
       </div>
     </div>
   </section>
-</main>
+
+  <?php if (!empty($newest_recipes)) { ?>
+    <section class="home-carousel-section">
+      <div class="wrapper">
+        <div class="home-section-header">
+          <h2>Newest Recipes</h2>
+          <a href="<?php echo url_for('/recipes'); ?>">View All</a>
+        </div>
+
+        <div class="home-carousel-wrapper">
+          <button class="carousel-button carousel-prev" aria-label="Scroll left">&lsaquo;</button>
+          <div class="home-carousel">
+            <?php foreach ($newest_recipes as $recipe) {
+              $rating = $recipe->rating_display();
+              $rating_avg = $rating['avg'];
+              $rating_count = $rating['count'];
+              $total_time = $recipe->total_time_minutes();
+              $image_src = $recipe->first_image_card_src();
+              $image_srcset = $recipe->first_image_card_srcset();
+              $image_sizes = $recipe->first_image_card_sizes();
+              $badge_name = $recipe->badge_name();
+            ?>
+              <a href="<?php echo url_for('/recipes/show.php?id=' . u($recipe->id_rcp)); ?>" class="recipe-card">
+                <div class="recipe-card-info">
+                  <h3><?php echo h($recipe->title_rcp); ?></h3>
+                  <div class="recipe-card-rating-time">
+                    <div class="recipe-card-rating">
+                      <span>⭐</span>
+                      <span><?php echo $rating_avg === null ? '—' : h(number_format($rating_avg, 1)); ?></span>
+                      <span>(<?php echo h($rating_count); ?>)</span>
+                    </div>
+                    <time datetime="<?php echo h('PT' . $total_time . 'M'); ?>" class="recipe-card-time">
+                      <?php echo h($total_time); ?> mins
+                    </time>
+                  </div>
+                </div>
+
+                <div class="recipe-card-media">
+                  <?php if ($image_src) { ?>
+                    <img
+                      src="<?php echo h($image_src); ?>"
+                      srcset="<?php echo h($image_srcset); ?>"
+                      sizes="<?php echo h($image_sizes); ?>"
+                      width="270"
+                      height="270"
+                      alt="<?php echo h($recipe->title_rcp); ?>"
+                      loading="lazy"
+                      decoding="async">
+                  <?php } else { ?>
+                    <img
+                      src="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?>"
+                      width="270"
+                      height="270"
+                      alt=""
+                      loading="lazy"
+                      decoding="async">
+                  <?php } ?>
+
+                  <?php if (!is_blank($badge_name)) { ?>
+                    <span class="recipe-card-badge"><?php echo h(display_title_case($badge_name)); ?></span>
+                  <?php } ?>
+                </div>
+              </a>
+            <?php } ?>
+          </div>
+          <button class="carousel-button carousel-next" aria-label="Scroll right">&rsaquo;</button>
+        </div>
+      </div>
+    </section>
+  <?php } ?>
+
+  <?php if (!empty($top_rated_recipes)) { ?>
+    <section class="home-carousel-section">
+      <div class="wrapper">
+        <div class="home-section-header">
+          <h2>Top-Rated Recipes</h2>
+          <a href="<?php echo url_for('/recipes'); ?>">View All</a>
+        </div>
+
+        <div class="home-carousel-wrapper">
+          <button class="carousel-button carousel-prev" aria-label="Scroll left">&lsaquo;</button>
+          <div class="home-carousel">
+            <?php foreach ($top_rated_recipes as $recipe) {
+              $rating = $recipe->rating_display();
+              $rating_avg = $rating['avg'];
+              $rating_count = $rating['count'];
+              $total_time = $recipe->total_time_minutes();
+              $image_src = $recipe->first_image_card_src();
+              $image_srcset = $recipe->first_image_card_srcset();
+              $image_sizes = $recipe->first_image_card_sizes();
+              $badge_name = $recipe->badge_name();
+            ?>
+              <a href="<?php echo url_for('/recipes/show.php?id=' . u($recipe->id_rcp)); ?>" class="recipe-card">
+                <div class="recipe-card-info">
+                  <h3><?php echo h($recipe->title_rcp); ?></h3>
+                  <div class="recipe-card-rating-time">
+                    <div class="recipe-card-rating">
+                      <span>⭐</span>
+                      <span><?php echo $rating_avg === null ? '—' : h(number_format($rating_avg, 1)); ?></span>
+                      <span>(<?php echo h($rating_count); ?>)</span>
+                    </div>
+                    <time datetime="<?php echo h('PT' . $total_time . 'M'); ?>" class="recipe-card-time">
+                      <?php echo h($total_time); ?> mins
+                    </time>
+                  </div>
+                </div>
+
+                <div class="recipe-card-media">
+                  <?php if ($image_src) { ?>
+                    <img
+                      src="<?php echo h($image_src); ?>"
+                      srcset="<?php echo h($image_srcset); ?>"
+                      sizes="<?php echo h($image_sizes); ?>"
+                      width="270"
+                      height="270"
+                      alt="<?php echo h($recipe->title_rcp); ?>"
+                      loading="lazy"
+                      decoding="async">
+                  <?php } else { ?>
+                    <img
+                      src="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?>"
+                      width="270"
+                      height="270"
+                      alt=""
+                      loading="lazy"
+                      decoding="async">
+                  <?php } ?>
+
+                  <?php if (!is_blank($badge_name)) { ?>
+                    <span class="recipe-card-badge"><?php echo h(display_title_case($badge_name)); ?></span>
+                  <?php } ?>
+                </div>
+              </a>
+            <?php } ?>
+          </div>
+          <button class="carousel-button carousel-next" aria-label="Scroll right">&rsaquo;</button>
+        </div>
+      </div>
+    </section>
+  <?php } ?>
+
+  <?php if (!empty($quick_recipes)) { ?>
+    <section class="home-carousel-section">
+      <div class="wrapper">
+        <div class="home-section-header">
+          <h2>30 Minute Recipes</h2>
+          <a href="<?php echo url_for('/recipes'); ?>">View All</a>
+        </div>
+
+        <div class="home-carousel-wrapper">
+          <button class="carousel-button carousel-prev" aria-label="Scroll left">&lsaquo;</button>
+          <div class="home-carousel">
+            <?php foreach ($quick_recipes as $recipe) {
+              $rating = $recipe->rating_display();
+              $rating_avg = $rating['avg'];
+              $rating_count = $rating['count'];
+              $total_time = $recipe->total_time_minutes();
+              $image_src = $recipe->first_image_card_src();
+              $image_srcset = $recipe->first_image_card_srcset();
+              $image_sizes = $recipe->first_image_card_sizes();
+              $badge_name = $recipe->badge_name();
+            ?>
+              <a href="<?php echo url_for('/recipes/show.php?id=' . u($recipe->id_rcp)); ?>" class="recipe-card">
+                <div class="recipe-card-info">
+                  <h3><?php echo h($recipe->title_rcp); ?></h3>
+                  <div class="recipe-card-rating-time">
+                    <div class="recipe-card-rating">
+                      <span>⭐</span>
+                      <span><?php echo $rating_avg === null ? '—' : h(number_format($rating_avg, 1)); ?></span>
+                      <span>(<?php echo h($rating_count); ?>)</span>
+                    </div>
+                    <time datetime="<?php echo h('PT' . $total_time . 'M'); ?>" class="recipe-card-time">
+                      <?php echo h($total_time); ?> mins
+                    </time>
+                  </div>
+                </div>
+
+                <div class="recipe-card-media">
+                  <?php if ($image_src) { ?>
+                    <img
+                      src="<?php echo h($image_src); ?>"
+                      srcset="<?php echo h($image_srcset); ?>"
+                      sizes="<?php echo h($image_sizes); ?>"
+                      width="270"
+                      height="270"
+                      alt="<?php echo h($recipe->title_rcp); ?>"
+                      loading="lazy"
+                      decoding="async">
+                  <?php } else { ?>
+                    <img
+                      src="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?>"
+                      width="270"
+                      height="270"
+                      alt=""
+                      loading="lazy"
+                      decoding="async">
+                  <?php } ?>
+
+                  <?php if (!is_blank($badge_name)) { ?>
+                    <span class="recipe-card-badge"><?php echo h(display_title_case($badge_name)); ?></span>
+                  <?php } ?>
+                </div>
+              </a>
+            <?php } ?>
+          </div>
+          <button class="carousel-button carousel-next" aria-label="Scroll right">&rsaquo;</button>
+        </div>
+      </div>
+    </section>
+  <?php } ?>
+
+</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

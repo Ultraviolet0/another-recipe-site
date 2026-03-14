@@ -4,32 +4,53 @@ function db_connect()
 {
   global $db_config;
 
-  $connection = new mysqli(
+  $connection = @new mysqli(
     $db_config['host'],
     $db_config['username'],
     $db_config['password'],
     $db_config['dbname']
   );
 
+  confirm_db_connect($connection);
+
   $connection->set_charset($db_config['charset'] ?? 'utf8mb4');
 
-  confirm_db_connect($connection);
   return $connection;
 }
 
 function confirm_db_connect($connection)
 {
+  if (!($connection instanceof mysqli)) {
+    error_log('Database connection failed: connection is not a mysqli instance.');
+    throw new Exception('Database connection failed.');
+  }
+
   if ($connection->connect_errno) {
-    $msg = "Database connection failed: ";
-    $msg .= $connection->connect_error;
-    $msg .= " (" . $connection->connect_errno . ")";
-    exit($msg);
+    $detailed_error = "Database connection failed: " .
+      $connection->connect_error .
+      " (" . $connection->connect_errno . ")";
+
+    error_log($detailed_error);
+
+    if (is_development_environment()) {
+      throw new Exception($detailed_error);
+    } else {
+      throw new Exception('Database connection failed.');
+    }
   }
 }
 
 function db_disconnect($connection)
 {
-  if (isset($connection)) {
+  if ($connection instanceof mysqli) {
     $connection->close();
+    return true;
   }
+
+  return false;
+}
+
+function is_development_environment()
+{
+  return defined('ENVIRONMENT') && ENVIRONMENT === 'development';
 }

@@ -75,12 +75,14 @@ class DatabaseObject
 
     return $this->errors;
   }
-  
+
   public function attributes()
   {
     $attributes = [];
     foreach (static::$db_columns as $column) {
-      if ($column == static::$primary_key) { continue; }
+      if ($column == static::$primary_key) {
+        continue;
+      }
       $attributes[$column] = $this->$column;
     }
     return $attributes;
@@ -102,12 +104,14 @@ class DatabaseObject
   protected function create()
   {
     $this->validate();
-    if (!empty($this->errors)) { return false; }
+    if (!empty($this->errors)) {
+      return false;
+    }
 
     $attributes = $this->sanitized_attributes();
 
     $values = [];
-    foreach($attributes as $value) {
+    foreach ($attributes as $value) {
       if ($value === null) {
         $values[] = "NULL";
       } else {
@@ -121,18 +125,34 @@ class DatabaseObject
     $sql .= join(', ', $values);
     $sql .= ")";
 
-    $result = self::$database->query($sql);
-    if ($result) {
-      $pk = static::$primary_key;
-      $this->$pk = self::$database->insert_id;
+    try {
+      $result = self::$database->query($sql);
+      if ($result) {
+        $pk = static::$primary_key;
+        $this->$pk = self::$database->insert_id;
+      }
+      return $result;
+    } catch (mysqli_sql_exception $e) {
+      $message = $e->getMessage();
+
+      if (str_contains($message, 'username_usr')) {
+        $this->errors[] = "Username is already taken.";
+      } elseif (str_contains($message, 'email_usr')) {
+        $this->errors[] = "Email is already in use.";
+      } else {
+        $this->errors[] = "Save failed.";
+      }
+
+      return false;
     }
-    return $result;
   }
 
   protected function update()
   {
     $this->validate();
-    if (!empty($this->errors)) { return false; }
+    if (!empty($this->errors)) {
+      return false;
+    }
 
     $attributes = $this->sanitized_attributes();
     $attribute_pairs = [];

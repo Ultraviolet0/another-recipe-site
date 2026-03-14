@@ -54,8 +54,8 @@ class Recipe extends DatabaseObject
       $this->errors[] = "Title must be 255 characters or fewer.";
     }
 
-    if (!is_blank($this->description_rcp) && !has_length($this->description_rcp, ['max' => 255])) {
-      $this->errors[] = "Description must be 255 characters or fewer.";
+    if (!is_blank($this->description_rcp) && !has_length($this->description_rcp, ['max' => 500])) {
+      $this->errors[] = "Description must be 500 characters or fewer.";
     }
 
     $valid_privacy = ['public', 'unlisted', 'private'];
@@ -94,7 +94,7 @@ class Recipe extends DatabaseObject
     self::$database->begin_transaction();
 
     try {
-      $ok = $this->save(); // creates recipe_rcp row
+      $ok = $this->save();
       if (!$ok) {
         throw new Exception("Recipe insert failed.");
       }
@@ -142,14 +142,13 @@ class Recipe extends DatabaseObject
     self::$database->begin_transaction();
 
     try {
-      $ok = $this->save(); // because id_rcp exists, this runs update()
+      $ok = $this->save();
       if (!$ok) {
         throw new Exception("Recipe update failed.");
       }
 
       $recipe_id = $this->id_rcp;
 
-      // Clear and rebuild child relationships
       $this->delete_child_rows($recipe_id);
 
       $this->insert_meal_types($recipe_id, $meal_type_ids);
@@ -158,7 +157,6 @@ class Recipe extends DatabaseObject
       $this->insert_ingredients($recipe_id, $ingredients);
       $this->insert_directions($recipe_id, $directions);
 
-      // For now: only ADD new uploaded images, do not delete existing ones
       if ($photo_files && $upload_root_public) {
         $this->insert_images($recipe_id, $photo_files, $upload_root_public);
       }
@@ -176,7 +174,6 @@ class Recipe extends DatabaseObject
   {
     $errors = [];
 
-    // Require at least one ingredient name
     $has_ing = false;
     foreach ($ingredients as $row) {
       if (trim($row['name_ing'] ?? '') !== '') {
@@ -188,7 +185,6 @@ class Recipe extends DatabaseObject
       $errors[] = "Add at least one ingredient.";
     }
 
-    // Require at least one direction instruction
     $has_dir = false;
     foreach ($directions as $row) {
       if (trim($row['instruction_dir'] ?? '') !== '') {
@@ -200,7 +196,6 @@ class Recipe extends DatabaseObject
       $errors[] = "Add at least one direction step.";
     }
 
-    // Per-ingredient validation (only when name present)
     foreach ($ingredients as $i => $row) {
       $name = trim($row['name_ing'] ?? '');
       if ($name === '') {
@@ -221,20 +216,17 @@ class Recipe extends DatabaseObject
       }
     }
 
-    // Directions: step text required if present
     foreach ($directions as $i => $row) {
       $text = trim($row['instruction_dir'] ?? '');
       if ($text === '') {
         continue;
       }
-      // TEXT column, so no hard limit here; you could set a sane max if desired.
     }
 
-    // Image validation (count + size)
     if ($photo_files && is_array($photo_files['name'] ?? null)) {
 
       $max_files = 6;
-      $max_bytes = 5 * 1024 * 1024; // 5 MB each
+      $max_bytes = 5 * 1024 * 1024;
 
       $count = count($photo_files['name']);
       $real_uploads = 0;
@@ -243,20 +235,17 @@ class Recipe extends DatabaseObject
 
         $err = $photo_files['error'][$i] ?? UPLOAD_ERR_NO_FILE;
 
-        // ignore empty slots
         if ($err === UPLOAD_ERR_NO_FILE) {
           continue;
         }
 
         $real_uploads++;
 
-        // handle upload error codes cleanly
         if ($err !== UPLOAD_ERR_OK) {
           $errors[] = "Image " . ($i + 1) . " failed to upload (error code {$err}).";
           continue;
         }
 
-        // per-file size check
         $size = (int)($photo_files['size'][$i] ?? 0);
         if ($size > $max_bytes) {
           $errors[] = "Image " . ($i + 1) . " is too large. Max size is 5MB per image.";
@@ -443,7 +432,6 @@ class Recipe extends DatabaseObject
 
   protected function find_or_create_ingredient($name_ing)
   {
-    // Basic normalization to reduce duplicates (still not perfect, but helps)
     $name_ing = preg_replace('/\s+/', ' ', trim($name_ing));
 
     $safe = self::$database->escape_string($name_ing);
@@ -460,7 +448,6 @@ class Recipe extends DatabaseObject
       return (int)self::$database->insert_id;
     }
 
-    // fallback (rare unique collision or race)
     $res2 = self::$database->query("SELECT id_ing FROM ingredient_ing WHERE name_ing='{$safe}' LIMIT 1");
     if ($res2 && $row2 = $res2->fetch_assoc()) {
       return (int)$row2['id_ing'];
@@ -500,7 +487,6 @@ class Recipe extends DatabaseObject
   {
     $image_ids = [];
 
-    // Normalize the "multiple upload" structure
     $count = is_array($files['name'] ?? null) ? count($files['name']) : 0;
 
     for ($i = 0; $i < $count; $i++) {
@@ -519,22 +505,21 @@ class Recipe extends DatabaseObject
       $result = process_recipe_upload($file, $upload_root_public);
       $file_name = $result['file_name'];
 
-      // Insert into image_img
       $safe = self::$database->escape_string($file_name);
       $sql = "INSERT INTO image_img (file_name_img) VALUES ('{$safe}')";
       $ok = self::$database->query($sql);
       if (!$ok) {
-        // If DB insert fails, cleanup files
-        @unlink($result['paths']['original']);
-        @unlink($result['paths']['270']);
+        @unlink($result['paths']['1600']);
         @unlink($result['paths']['800']);
+        @unlink($result['paths']['540']);
+        @unlink($result['paths']['400']);
+        @unlink($result['paths']['270']);
         throw new Exception("Failed to save image record: " . self::$database->error);
       }
 
       $id_img = (int)self::$database->insert_id;
       $image_ids[] = $id_img;
 
-      // Insert junction
       $sql = "INSERT INTO recipe_image_rcpimg (id_rcp_rcpimg, id_img_rcpimg) VALUES (";
       $sql .= "'" . self::$database->escape_string($recipe_id) . "', ";
       $sql .= "'" . self::$database->escape_string($id_img) . "'";
@@ -564,7 +549,6 @@ class Recipe extends DatabaseObject
       return true;
     }
 
-    // private
     return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in();
   }
 
@@ -633,7 +617,7 @@ class Recipe extends DatabaseObject
 
     $sql = "SELECT
             ri.quantity_rcping,
-            ri.id_mes_rcping AS id_mes, 
+            ri.id_mes_rcping AS id_mes,
             m.abbr_mes,
             m.name_mes,
             i.name_ing
@@ -828,16 +812,16 @@ class Recipe extends DatabaseObject
   {
     $current_user_id = $session->get_user_id();
 
-    if ($session->is_admin_logged_in() || $session->is_super_admin_logged_in()) {
+    if ($session->is_admin_logged_in()) {
       return "1=1";
     }
 
     if ($current_user_id !== null) {
       $safe_user_id = self::$database->escape_string($current_user_id);
-      return "(privacy_rcp IN ('public', 'unlisted') OR (privacy_rcp = 'private' AND id_usr_rcp = '{$safe_user_id}'))";
+      return "(privacy_rcp = 'public' OR (privacy_rcp IN ('unlisted', 'private') AND id_usr_rcp = '{$safe_user_id}'))";
     }
 
-    return "privacy_rcp IN ('public', 'unlisted')";
+    return "privacy_rcp = 'public'";
   }
 
   protected static function sanitize_id_array($values): array
@@ -856,6 +840,31 @@ class Recipe extends DatabaseObject
     }
 
     return $clean;
+  }
+
+  protected static function build_search_join_and_where(string $search = ''): array
+  {
+    $joins = [];
+    $where = [];
+
+    $search = trim($search);
+
+    if ($search !== '') {
+      $safe_search = self::$database->escape_string($search);
+      $like = "%{$safe_search}%";
+
+      $joins[] = "LEFT JOIN recipe_ingredient_rcping sri ON sri.id_rcp_rcping = recipe_rcp.id_rcp";
+      $joins[] = "LEFT JOIN ingredient_ing si ON si.id_ing = sri.id_ing_rcping";
+
+      $where[] = "(recipe_rcp.title_rcp LIKE '{$like}'
+              OR recipe_rcp.description_rcp LIKE '{$like}'
+              OR si.name_ing LIKE '{$like}')";
+    }
+
+    return [
+      'joins' => $joins,
+      'where' => $where
+    ];
   }
 
   protected static function build_filter_join_and_where(array $meal_type_ids = [], array $cuisine_ids = [], array $dietary_style_ids = []): array
@@ -888,20 +897,27 @@ class Recipe extends DatabaseObject
     ];
   }
 
-  public static function count_filtered(Session $session, array $meal_type_ids = [], array $cuisine_ids = [], array $dietary_style_ids = []): int
-  {
+  public static function count_filtered(
+    Session $session,
+    string $search = '',
+    array $meal_type_ids = [],
+    array $cuisine_ids = [],
+    array $dietary_style_ids = []
+  ): int {
+    $search_parts = static::build_search_join_and_where($search);
     $filter_parts = static::build_filter_join_and_where($meal_type_ids, $cuisine_ids, $dietary_style_ids);
     $visibility_sql = static::visible_where_sql($session);
 
     $sql = "SELECT COUNT(DISTINCT recipe_rcp.id_rcp) AS recipe_count ";
     $sql .= "FROM recipe_rcp ";
 
-    if (!empty($filter_parts['joins'])) {
-      $sql .= implode(' ', $filter_parts['joins']) . ' ';
+    $joins = array_merge($filter_parts['joins'], $search_parts['joins']);
+    if (!empty($joins)) {
+      $sql .= implode(' ', array_unique($joins)) . ' ';
     }
 
     $where = [$visibility_sql];
-    $where = array_merge($where, $filter_parts['where']);
+    $where = array_merge($where, $filter_parts['where'], $search_parts['where']);
 
     if (!empty($where)) {
       $sql .= "WHERE " . implode(' AND ', $where) . " ";
@@ -922,10 +938,12 @@ class Recipe extends DatabaseObject
     Session $session,
     int $page = 1,
     int $per_page = 12,
+    string $search = '',
     array $meal_type_ids = [],
     array $cuisine_ids = [],
     array $dietary_style_ids = []
   ): array {
+    $search_parts = static::build_search_join_and_where($search);
     $filter_parts = static::build_filter_join_and_where($meal_type_ids, $cuisine_ids, $dietary_style_ids);
     $visibility_sql = static::visible_where_sql($session);
 
@@ -936,12 +954,13 @@ class Recipe extends DatabaseObject
     $sql = "SELECT DISTINCT recipe_rcp.* ";
     $sql .= "FROM recipe_rcp ";
 
-    if (!empty($filter_parts['joins'])) {
-      $sql .= implode(' ', $filter_parts['joins']) . ' ';
+    $joins = array_merge($filter_parts['joins'], $search_parts['joins']);
+    if (!empty($joins)) {
+      $sql .= implode(' ', array_unique($joins)) . ' ';
     }
 
     $where = [$visibility_sql];
-    $where = array_merge($where, $filter_parts['where']);
+    $where = array_merge($where, $filter_parts['where'], $search_parts['where']);
 
     if (!empty($where)) {
       $sql .= "WHERE " . implode(' AND ', $where) . " ";
@@ -963,7 +982,24 @@ class Recipe extends DatabaseObject
     return $this->rating_summary();
   }
 
-  public function first_image_270_url(): ?string
+  public function delete_rating($user_id): bool
+  {
+    if ($user_id === null) {
+      return false;
+    }
+
+    $recipe_id = self::$database->escape_string($this->id_rcp);
+    $user_id = self::$database->escape_string($user_id);
+
+    $sql = "DELETE FROM rating_rtg
+          WHERE id_rcp_rtg = '{$recipe_id}'
+          AND id_usr_rtg = '{$user_id}'
+          LIMIT 1";
+
+    return (bool) self::$database->query($sql);
+  }
+
+  public function first_image_card_src(): ?string
   {
     $images = $this->images();
     if (empty($images)) {
@@ -971,6 +1007,74 @@ class Recipe extends DatabaseObject
     }
 
     return url_for('/uploads/recipes/270/' . u($images[0]));
+  }
+
+  public function first_image_card_srcset(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    $file_name = $images[0];
+
+    return url_for('/uploads/recipes/270/' . u($file_name)) . ' 270w, ' .
+      url_for('/uploads/recipes/400/' . u($file_name)) . ' 400w, ' .
+      url_for('/uploads/recipes/540/' . u($file_name)) . ' 540w';
+  }
+
+  public function first_image_card_sizes(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    return '(max-width: 640px) 45vw, 270px';
+  }
+
+  public function first_image_hero_src(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    return url_for('/uploads/recipes/540/' . u($images[0]));
+  }
+
+  public function first_image_hero_srcset(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    $file_name = $images[0];
+
+    return url_for('/uploads/recipes/540/' . u($file_name)) . ' 540w, ' .
+      url_for('/uploads/recipes/800/' . u($file_name)) . ' 800w, ' .
+      url_for('/uploads/recipes/1600/' . u($file_name)) . ' 1600w';
+  }
+
+  public function first_image_hero_sizes(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    return '(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px';
+  }
+
+  public function first_image_full_url(): ?string
+  {
+    $images = $this->images();
+    if (empty($images)) {
+      return null;
+    }
+
+    return url_for('/uploads/recipes/1600/' . u($images[0]));
   }
 
   public function badge_name(): ?string
@@ -989,5 +1093,51 @@ class Recipe extends DatabaseObject
     }
 
     return null;
+  }
+
+  public static function find_homepage_newest(Session $session, int $limit = 6): array
+  {
+    $limit = max(1, (int)$limit);
+    $visibility_sql = static::visible_where_sql($session);
+
+    $sql = "SELECT recipe_rcp.* ";
+    $sql .= "FROM recipe_rcp ";
+    $sql .= "WHERE {$visibility_sql} ";
+    $sql .= "ORDER BY created_at_rcp DESC ";
+    $sql .= "LIMIT {$limit}";
+
+    return static::find_by_sql($sql);
+  }
+
+  public static function find_homepage_top_rated(Session $session, int $limit = 6): array
+  {
+    $limit = max(1, (int)$limit);
+    $visibility_sql = static::visible_where_sql($session);
+
+    $sql = "SELECT recipe_rcp.* ";
+    $sql .= "FROM recipe_rcp ";
+    $sql .= "LEFT JOIN rating_rtg ON rating_rtg.id_rcp_rtg = recipe_rcp.id_rcp ";
+    $sql .= "WHERE {$visibility_sql} ";
+    $sql .= "GROUP BY recipe_rcp.id_rcp ";
+    $sql .= "HAVING COUNT(rating_rtg.id_rtg) > 0 ";
+    $sql .= "ORDER BY AVG(rating_rtg.rating_rtg) DESC, COUNT(rating_rtg.id_rtg) DESC, recipe_rcp.updated_at_rcp DESC ";
+    $sql .= "LIMIT {$limit}";
+
+    return static::find_by_sql($sql);
+  }
+
+  public static function find_homepage_quick_recipes(Session $session, int $limit = 6): array
+  {
+    $limit = max(1, (int)$limit);
+    $visibility_sql = static::visible_where_sql($session);
+
+    $sql = "SELECT recipe_rcp.* ";
+    $sql .= "FROM recipe_rcp ";
+    $sql .= "WHERE {$visibility_sql} ";
+    $sql .= "AND (prep_time_minutes_rcp + cook_time_minutes_rcp) <= 30 ";
+    $sql .= "ORDER BY updated_at_rcp DESC ";
+    $sql .= "LIMIT {$limit}";
+
+    return static::find_by_sql($sql);
   }
 }

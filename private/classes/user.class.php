@@ -76,6 +76,11 @@ class User extends DatabaseObject
       $this->errors[] = "Username cannot be blank.";
     } elseif (!has_length($this->username_usr, array('min' => 3, 'max' => 32))) {
       $this->errors[] = "Username must be between 3 and 32 characters.";
+    } else {
+      $existing_user = static::find_by_username($this->username_usr);
+      if ($existing_user && (!isset($this->id_usr) || $existing_user->id_usr != $this->id_usr)) {
+        $this->errors[] = "Username is already taken.";
+      }
     }
 
     // Email
@@ -85,6 +90,11 @@ class User extends DatabaseObject
       $this->errors[] = "Email must be less than 255 characters.";
     } elseif (!has_valid_email_format($this->email_usr)) {
       $this->errors[] = "Email must be a valid format.";
+    } else {
+      $existing_email = static::find_by_email($this->email_usr);
+      if ($existing_email && (!isset($this->id_usr) || $existing_email->id_usr != $this->id_usr)) {
+        $this->errors[] = "Email is already in use.";
+      }
     }
 
     // Password (only when required)
@@ -126,6 +136,15 @@ class User extends DatabaseObject
     //  return false;
     //}
     // Above improved with ternary operator:
+    return !empty($object_array) ? array_shift($object_array) : false;
+  }
+
+  static public function find_by_email($email)
+  {
+    $sql = "SELECT * FROM " . static::$table_name . " ";
+    $sql .= "WHERE email_usr='" . self::$database->escape_string($email) . "' ";
+    $sql .= "LIMIT 1";
+    $object_array = static::find_by_sql($sql);
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 

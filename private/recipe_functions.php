@@ -123,9 +123,14 @@ function recipe_load_edit_draft(Recipe $recipe) {
   $_SESSION['recipe_draft_recipe_id'] = (string)$recipe->id_rcp;
 }
 
-function recipes_index_page_url($page_num, $meal_types = [], $cuisines = [], $dietary_styles = [])
+function recipes_index_page_url($page_num, $search = '', $meal_types = [], $cuisines = [], $dietary_styles = [])
 {
   $params = ['page' => $page_num];
+
+  $search = trim((string)$search);
+  if ($search !== '') {
+    $params['search'] = $search;
+  }
 
   if (!empty($meal_types)) {
     $params['meal_types'] = array_values($meal_types);
@@ -142,7 +147,7 @@ function recipes_index_page_url($page_num, $meal_types = [], $cuisines = [], $di
   return url_for('/recipes/index.php?' . http_build_query($params));
 }
 
-function recipes_index_remove_filter_url($type, $remove_id, $meal_types = [], $cuisines = [], $dietary_styles = [])
+function recipes_index_remove_filter_url($type, $remove_id, $search = '', $meal_types = [], $cuisines = [], $dietary_styles = [])
 {
   $filters = [
     'meal_types' => array_values($meal_types),
@@ -159,6 +164,7 @@ function recipes_index_remove_filter_url($type, $remove_id, $meal_types = [], $c
 
   return recipes_index_page_url(
     1,
+    $search,
     $filters['meal_types'],
     $filters['cuisines'],
     $filters['dietary_styles']

@@ -13,18 +13,25 @@ if (!$recipe) {
   redirect_to(url_for('/recipes'));
 }
 
-// Privacy enforcement
 if (!$recipe->can_view($session)) {
   $session->message('That recipe is private.');
   redirect_to(url_for('/recipes'));
 }
 
-// Handle rating POST (PRG)
 if (is_post_request()) {
-  $action = $_POST['action'] ?? '';
+  if (isset($_POST['clear_rating'])) {
 
-  if ($action === 'rate') {
+    if (!$session->is_logged_in()) {
+      redirect_to(url_for('/login.php'));
+    }
 
+    $ok = $recipe->delete_rating($session->get_user_id());
+    $session->message($ok ? 'Rating removed.' : 'Could not remove rating.');
+
+    redirect_to(url_for('/recipes/show.php?id=' . u($recipe->id_rcp)));
+  }
+
+  if (isset($_POST['save_rating'])) {
     if (!$session->is_logged_in()) {
       $return_to = url_for('/recipes/show.php?id=' . u($recipe->id_rcp));
       redirect_to(url_for('/login.php?return_to=' . u($return_to)));
@@ -56,14 +63,13 @@ $rating_count = $rating['count'];
 
 $user_rating = $recipe->user_rating($session->get_user_id());
 
-$page_title = h($recipe->title_rcp) . ' Recipe';
+$page_title = $recipe->title_rcp . ' Recipe';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
 <div class="wrapper">
   <div class="container">
     <div class="recipe-show">
-
 
       <h2><?php echo h($recipe->title_rcp); ?></h2>
 
@@ -95,11 +101,10 @@ include(SHARED_PATH . '/public_header.php');
 
       <div class="recipe-actions">
         <?php if ($recipe->can_edit($session)) { ?>
-          <a class="button" href="<?php echo url_for('/recipes/edit.php?id=' . h(u($recipe->id_rcp))); ?>">Edit Recipe</a>
-          <a class="button button-danger" href="<?php echo url_for('/recipes/delete.php?id=' . h(u($recipe->id_rcp))); ?>">Delete Recipe</a>
+          <a class="button" href="<?php echo url_for('/recipes/edit.php?id=' . u($recipe->id_rcp)); ?>">Edit Recipe</a>
+          <a class="button button-danger" href="<?php echo url_for('/recipes/delete.php?id=' . u($recipe->id_rcp)); ?>">Delete Recipe</a>
         <?php } ?>
 
-        <!-- Placeholder for later -->
         <button type="button" class="button" disabled title="Coming soon">Print / PDF</button>
       </div>
 
@@ -107,25 +112,49 @@ include(SHARED_PATH . '/public_header.php');
         <section class="recipe-images">
 
           <?php
-          $first = $images[0];
-          $hero_url = url_for('/uploads/recipes/800/' . h(u($first)));
+          $hero_src = $recipe->first_image_hero_src();
+          $hero_srcset = $recipe->first_image_hero_srcset();
+          $hero_sizes = $recipe->first_image_hero_sizes();
+          $hero_full_url = $recipe->first_image_full_url();
           ?>
           <div class="recipe-image-hero">
-            <a href="<?php echo $hero_url; ?>" target="_blank" rel="noopener noreferrer">
-              <img src="<?php echo $hero_url; ?>" alt="<?php echo h($recipe->title_rcp); ?>">
+            <a href="<?php echo h($hero_full_url); ?>" target="_blank" rel="noopener noreferrer" class="recipe-hero-link">
+              <img
+                src="<?php echo h($hero_src); ?>"
+                srcset="<?php echo h($hero_srcset); ?>"
+                sizes="<?php echo h($hero_sizes); ?>"
+                alt="<?php echo h($recipe->title_rcp); ?>"
+                class="recipe-hero-image recipe-hero-image-current"
+                decoding="async"
+                fetchpriority="high">
+              <img src="" alt="" class="recipe-hero-image recipe-hero-image-next" aria-hidden="true">
             </a>
           </div>
 
           <?php if (count($images) > 1) { ?>
             <div class="recipe-image-thumbs">
               <?php foreach ($images as $idx => $file_name) {
-                $thumb_url = url_for('/uploads/recipes/270/' . h(u($file_name)));
-                $full_url  = url_for('/uploads/recipes/800/' . h(u($file_name)));
+                $thumb_270 = url_for('/uploads/recipes/270/' . u($file_name));
+                $thumb_540 = url_for('/uploads/recipes/540/' . u($file_name));
+                $full_url  = url_for('/uploads/recipes/1600/' . u($file_name));
 
                 $alt = $recipe->title_rcp . ' photo ' . ($idx + 1) . '.';
               ?>
-                <a class="recipe-thumb" href="<?php echo $full_url; ?>" target="_blank" rel="noopener noreferrer">
-                  <img src="<?php echo $thumb_url; ?>" alt="<?php echo h($alt); ?>">
+                <a
+                  class="recipe-thumb<?php echo $idx === 0 ? ' is-active' : ''; ?>"
+                  href="<?php echo h($full_url); ?>"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-full-url="<?php echo h($full_url); ?>"
+                  data-alt="<?php echo h($alt); ?>">
+                  <img
+                    src="<?php echo h($thumb_270); ?>"
+                    srcset="<?php echo h($thumb_270); ?> 1x, <?php echo h($thumb_540); ?> 2x"
+                    width="270"
+                    height="270"
+                    alt="<?php echo h($alt); ?>"
+                    loading="lazy"
+                    decoding="async">
                 </a>
               <?php } ?>
             </div>
@@ -136,8 +165,6 @@ include(SHARED_PATH . '/public_header.php');
 
       <?php
       $chips = array_merge($meal_types, $cuisines, $dietary_styles);
-
-      // Title-case them, then unique + sort (optional but looks nice)
       $chips = array_map('display_title_case', $chips);
       $chips = array_values(array_unique($chips));
       sort($chips, SORT_NATURAL | SORT_FLAG_CASE);
@@ -163,8 +190,8 @@ include(SHARED_PATH . '/public_header.php');
         </div>
 
         <div class="rating-form">
-          <form action="<?php echo url_for('/recipes/show.php?id=' . h(u($recipe->id_rcp))); ?>" method="post">
-            <input type="hidden" name="action" value="rate">
+          <form action="<?php echo url_for('/recipes/show.php?id=' . u($recipe->id_rcp)); ?>" method="post" data-is-logged-in="<?php echo $session->is_logged_in() ? 'true' : 'false'; ?>" data-login-url="<?php echo url_for('/login.php?return_to=' . u(url_for('/recipes/show.php?id=' . u($recipe->id_rcp)))); ?>">
+            <input type="hidden" name="save_rating" value="1">
 
             <fieldset>
               <legend>Your Rating</legend>
@@ -177,7 +204,10 @@ include(SHARED_PATH . '/public_header.php');
                 <label for="<?php echo h($rid); ?>"><?php echo h($i); ?></label>
               <?php } ?>
 
-              <button type="submit">Save Rating</button>
+              <button type="submit" class="button rating-save-button">Save Rating</button>
+              <?php if ($user_rating !== null) { ?>
+                <button type="submit" class="button button-secondary rating-clear-button" name="clear_rating" value="1">Clear Rating</button>
+              <?php } ?>
             </fieldset>
           </form>
         </div>
@@ -187,12 +217,11 @@ include(SHARED_PATH . '/public_header.php');
         <section class="recipe-ingredients">
           <h2>Ingredients</h2>
 
-          <!-- Placeholder buttons for JS scaling later -->
           <div class="scale-buttons">
-            <button type="button" class="button scale-button" data-scale="0.5">½x</button>
-            <button type="button" class="button scale-button is-active" data-scale="1">1x</button>
-            <button type="button" class="button scale-button" data-scale="2">2x</button>
-            <button type="button" class="button scale-button" data-scale="3">3x</button>
+            <button type="button" class="button button-secondary scale-button" data-scale="0.5" disabled>½x</button>
+            <button type="button" class="button button-secondary scale-button is-active" data-scale="1">1x</button>
+            <button type="button" class="button button-secondary scale-button" data-scale="2" disabled>2x</button>
+            <button type="button" class="button button-secondary scale-button" data-scale="3" disabled>3x</button>
           </div>
 
           <?php if (empty($ingredients)) { ?>
@@ -202,13 +231,11 @@ include(SHARED_PATH . '/public_header.php');
               <?php foreach ($ingredients as $ing) { ?>
                 <li>
                   <?php
-                  $qty = format_number_clean($ing['quantity_rcping']);
+                  $qty = $ing['quantity_rcping'];
                   $abbr = $ing['abbr_mes'] ?? '';
                   $iname = $ing['name_ing'] ?? '';
                   ?>
-                  <span
-                    class="qty"
-                    data-base-qty="<?php echo h($ing['quantity_rcping']); ?>"><?php echo h(format_quantity_kitchen($qty)); ?></span></span>
+                  <span class="qty" data-base-qty="<?php echo h($ing['quantity_rcping']); ?>"><?php echo h(format_quantity_kitchen($qty)); ?></span>
                   <?php if (!is_blank($abbr)) { ?>
                     <span class="unit"><?php echo h($abbr); ?></span>
                   <?php } ?>

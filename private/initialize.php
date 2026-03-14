@@ -5,6 +5,7 @@ define("PRIVATE_PATH", dirname(__FILE__));
 define("PROJECT_PATH", dirname(PRIVATE_PATH));
 define("PUBLIC_PATH", PROJECT_PATH . '/public_html');
 define("SHARED_PATH", PRIVATE_PATH . '/shared');
+define('ENVIRONMENT', 'development');
 
 require_once(PROJECT_PATH . '/vendor/autoload.php');
 
@@ -40,7 +41,16 @@ function my_autoload($class)
 spl_autoload_register('my_autoload');
 
 // DB Connect
-$database = db_connect();
+try {
+  $database = db_connect();
+} catch (Exception $e) {
+  if (is_development_environment()) {
+    echo $e->getMessage();
+  } else {
+    echo "Database connection error.";
+  }
+  exit();
+}
 DatabaseObject::set_database($database);
 
 $session = new Session;

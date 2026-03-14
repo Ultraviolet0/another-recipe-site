@@ -6,6 +6,9 @@ $page = $_GET['page'] ?? 1;
 $page = ctype_digit((string)$page) ? (int)$page : 1;
 $page = max(1, $page);
 
+$search = $_GET['search'] ?? '';
+$search = trim($search);
+
 $selected_meal_types = $_GET['meal_types'] ?? [];
 $selected_cuisines = $_GET['cuisines'] ?? [];
 $selected_dietary_styles = $_GET['dietary_styles'] ?? [];
@@ -31,6 +34,7 @@ foreach ($dietary_styles as $dst) {
 
 $total_count = Recipe::count_filtered(
   $session,
+  $search,
   $selected_meal_types,
   $selected_cuisines,
   $selected_dietary_styles
@@ -46,6 +50,7 @@ $recipes = Recipe::find_filtered_paginated(
   $session,
   $page,
   $per_page,
+  $search,
   $selected_meal_types,
   $selected_cuisines,
   $selected_dietary_styles
@@ -57,86 +62,96 @@ include(SHARED_PATH . '/public_header.php');
 
 <div class="wrapper">
   <section class="recipes-index-header">
-    <h2>Recipes</h2>
+    <div>
+      <h2>Recipes</h2>
+      <?php if ($search !== '') { ?>
+        <p>Showing results for "<strong><?php echo h($search); ?></strong>"</p>
+      <?php } ?>
+    </div>
     <p><?php echo h($total_count); ?> recipe<?php echo $total_count === 1 ? '' : 's'; ?></p>
   </section>
 
   <?php
-  $has_active_filters = !empty($selected_meal_types) || !empty($selected_cuisines) || !empty($selected_dietary_styles);
+  $has_active_filters = $search !== '' || !empty($selected_meal_types) || !empty($selected_cuisines) || !empty($selected_dietary_styles);
   ?>
 
-  <details class="recipe-filters" open>
-    <summary>Filters</summary>
-
+  <section class="recipe-filters" aria-label="Recipe filters">
     <form action="<?php echo url_for('/recipes/index.php'); ?>" method="get">
-      <fieldset>
+      <?php if ($search !== '') { ?>
+        <input type="hidden" name="search" value="<?php echo h($search); ?>">
+      <?php } ?>
 
-        <div class="filter-grid">
+      <div class="filter-menu-row">
 
-          <!-- Meal Types -->
-          <div class="filter-field">
-            <label for="meal-types">Meal Types</label>
-            <select name="meal_types[]" id="meal-types" multiple>
-              <?php foreach ($meal_types as $mty) {
-                $id = (string)$mty->id_mty;
-                $selected = in_array($id, $selected_meal_types, true) ? 'selected' : '';
-              ?>
-                <option value="<?php echo h($id); ?>" <?php echo $selected; ?>>
-                  <?php echo h(display_title_case($mty->name_mty)); ?>
-                </option>
-              <?php } ?>
-            </select>
+        <div class="filter-menu" data-filter-menu="meal-types">
+          <button type="button" class="filter-menu-toggle">Meal Types</button>
+          <div class="filter-menu-panel">
+            <?php foreach ($meal_types as $mty) {
+              $id = (string)$mty->id_mty;
+              $checked = in_array($id, $selected_meal_types, true) ? 'checked' : '';
+              $input_id = 'filter-meal-type-' . $id;
+            ?>
+              <div class="filter-option">
+                <input type="checkbox" id="<?php echo h($input_id); ?>" name="meal_types[]" value="<?php echo h($id); ?>" data-filter-menu="meal-types" <?php echo $checked; ?>>
+                <label for="<?php echo h($input_id); ?>"><?php echo h(display_title_case($mty->name_mty)); ?></label>
+              </div>
+            <?php } ?>
           </div>
-
-          <!-- Cuisines -->
-          <div class="filter-field">
-            <label for="cuisines">Cuisines</label>
-            <select name="cuisines[]" id="cuisines" multiple>
-              <?php foreach ($cuisines as $csn) {
-                $id = (string)$csn->id_csn;
-                $selected = in_array($id, $selected_cuisines, true) ? 'selected' : '';
-              ?>
-                <option value="<?php echo h($id); ?>" <?php echo $selected; ?>>
-                  <?php echo h(display_title_case($csn->name_csn)); ?>
-                </option>
-              <?php } ?>
-            </select>
-          </div>
-
-          <!-- Dietary Styles -->
-          <div class="filter-field">
-            <label for="dietary-styles">Dietary Styles</label>
-            <select name="dietary_styles[]" id="dietary-styles" multiple>
-              <?php foreach ($dietary_styles as $dst) {
-                $id = (string)$dst->id_dst;
-                $selected = in_array($id, $selected_dietary_styles, true) ? 'selected' : '';
-              ?>
-                <option value="<?php echo h($id); ?>" <?php echo $selected; ?>>
-                  <?php echo h(display_title_case($dst->name_dst)); ?>
-                </option>
-              <?php } ?>
-            </select>
-          </div>
-
         </div>
 
-        <p class="filter-help">
-          Hold Ctrl (Windows) or Command (Mac) to select multiple options.
-        </p>
+        <div class="filter-menu" data-filter-menu="cuisines">
+          <button type="button" class="filter-menu-toggle">Cuisines</button>
+          <div class="filter-menu-panel">
+            <?php foreach ($cuisines as $csn) {
+              $id = (string)$csn->id_csn;
+              $checked = in_array($id, $selected_cuisines, true) ? 'checked' : '';
+              $input_id = 'filter-cuisine-' . $id;
+            ?>
+              <div class="filter-option">
+                <input type="checkbox" id="<?php echo h($input_id); ?>" name="cuisines[]" value="<?php echo h($id); ?>" data-filter-menu="cuisines" <?php echo $checked; ?>>
+                <label for="<?php echo h($input_id); ?>"><?php echo h(display_title_case($csn->name_csn)); ?></label>
+              </div>
+            <?php } ?>
+          </div>
+        </div>
+
+        <div class="filter-menu" data-filter-menu="dietary-styles">
+          <button type="button" class="filter-menu-toggle">Dietary Styles</button>
+          <div class="filter-menu-panel">
+            <?php foreach ($dietary_styles as $dst) {
+              $id = (string)$dst->id_dst;
+              $checked = in_array($id, $selected_dietary_styles, true) ? 'checked' : '';
+              $input_id = 'filter-dietary-style-' . $id;
+            ?>
+              <div class="filter-option">
+                <input type="checkbox" id="<?php echo h($input_id); ?>" name="dietary_styles[]" value="<?php echo h($id); ?>" data-filter-menu="dietary-styles" <?php echo $checked; ?>>
+                <label for="<?php echo h($input_id); ?>"><?php echo h(display_title_case($dst->name_dst)); ?></label>
+              </div>
+            <?php } ?>
+          </div>
+        </div>
 
         <div class="filter-actions">
-          <button type="submit" class="apply-filters-button">Apply Filters</button>
-          <a class="button" href="<?php echo url_for('/recipes/index.php'); ?>">Clear Filters</a>
+          <button type="submit" class="button apply-filters-button">Apply Filters</button>
+          <a class="button button-secondary" href="<?php echo recipes_index_page_url(1, $search); ?>">Clear Filters</a>
         </div>
 
-      </fieldset>
+      </div>
     </form>
-
-  </details>
+  </section>
 
   <?php if ($has_active_filters) { ?>
     <section class="active-filters" aria-label="Active filters">
       <p><strong>Active Filters:</strong></p>
+
+      <?php if ($search !== '') { ?>
+        <a
+          class="active-filter-chip"
+          href="<?php echo recipes_index_page_url(1, '', $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+          Search: <?php echo h($search); ?>
+          <span aria-hidden="true">&times;</span>
+        </a>
+      <?php } ?>
 
       <div class="active-filter-chips">
         <?php foreach ($selected_meal_types as $id) {
@@ -144,7 +159,7 @@ include(SHARED_PATH . '/public_header.php');
         ?>
           <a
             class="active-filter-chip"
-            href="<?php echo recipes_index_remove_filter_url('meal_types', $id, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+            href="<?php echo recipes_index_remove_filter_url('meal_types', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
             <?php echo h($meal_type_map[(string)$id]); ?>
             <span aria-hidden="true">&times;</span>
           </a>
@@ -155,7 +170,7 @@ include(SHARED_PATH . '/public_header.php');
         ?>
           <a
             class="active-filter-chip"
-            href="<?php echo recipes_index_remove_filter_url('cuisines', $id, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+            href="<?php echo recipes_index_remove_filter_url('cuisines', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
             <?php echo h($cuisine_map[(string)$id]); ?>
             <span aria-hidden="true">&times;</span>
           </a>
@@ -166,7 +181,7 @@ include(SHARED_PATH . '/public_header.php');
         ?>
           <a
             class="active-filter-chip"
-            href="<?php echo recipes_index_remove_filter_url('dietary_styles', $id, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+            href="<?php echo recipes_index_remove_filter_url('dietary_styles', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
             <?php echo h($dietary_style_map[(string)$id]); ?>
             <span aria-hidden="true">&times;</span>
           </a>
@@ -176,7 +191,11 @@ include(SHARED_PATH . '/public_header.php');
   <?php } ?>
 
   <?php if (empty($recipes)) { ?>
-    <p>No recipes matched your filters.</p>
+    <?php if ($search !== '' || $has_active_filters) { ?>
+      <p>No recipes matched your search and filters.</p>
+    <?php } else { ?>
+      <p>No recipes found.</p>
+    <?php } ?>
   <?php } else { ?>
     <div class="recipe-grid">
       <?php foreach ($recipes as $recipe) {
@@ -184,7 +203,9 @@ include(SHARED_PATH . '/public_header.php');
         $rating_avg = $rating['avg'];
         $rating_count = $rating['count'];
         $total_time = $recipe->total_time_minutes();
-        $image_url = $recipe->first_image_270_url();
+        $image_src = $recipe->first_image_card_src();
+        $image_srcset = $recipe->first_image_card_srcset();
+        $image_sizes = $recipe->first_image_card_sizes();
         $badge_name = $recipe->badge_name();
       ?>
         <a href="<?php echo url_for('/recipes/show.php?id=' . u($recipe->id_rcp)); ?>" class="recipe-card">
@@ -203,20 +224,24 @@ include(SHARED_PATH . '/public_header.php');
           </div>
 
           <div class="recipe-card-media">
-            <?php if ($image_url) { ?>
+            <?php if ($image_src) { ?>
               <img
-                src="<?php echo $image_url; ?>"
+                src="<?php echo h($image_src); ?>"
+                srcset="<?php echo h($image_srcset); ?>"
+                sizes="<?php echo h($image_sizes); ?>"
                 width="270"
                 height="270"
                 alt="<?php echo h($recipe->title_rcp); ?>"
-                loading="lazy">
+                loading="lazy"
+                decoding="async">
             <?php } else { ?>
               <img
-                src="<?php echo url_for('/images/recipe-placeholder-270.png'); ?>"
+                src="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?>"
                 width="270"
                 height="270"
                 alt=""
-                loading="lazy">
+                loading="lazy"
+                decoding="async">
             <?php } ?>
 
             <?php if (!is_blank($badge_name)) { ?>
@@ -232,7 +257,7 @@ include(SHARED_PATH . '/public_header.php');
     <nav class="pagination" aria-label="Recipe pages">
       <ul>
         <?php if ($page > 1) { ?>
-          <li><a href="<?php echo recipes_index_page_url($page - 1, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">&laquo; Prev</a></li>
+          <li><a href="<?php echo recipes_index_page_url($page - 1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">&laquo; Prev</a></li>
         <?php } ?>
 
         <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
@@ -240,7 +265,7 @@ include(SHARED_PATH . '/public_header.php');
             <?php if ($i === $page) { ?>
               <span class="current"><?php echo h($i); ?></span>
             <?php } else { ?>
-              <a href="<?php echo recipes_index_page_url($i, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+              <a href="<?php echo recipes_index_page_url($i, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
                 <?php echo h($i); ?>
               </a>
             <?php } ?>
@@ -248,7 +273,7 @@ include(SHARED_PATH . '/public_header.php');
         <?php } ?>
 
         <?php if ($page < $total_pages) { ?>
-          <li><a href="<?php echo recipes_index_page_url($page + 1, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">Next &raquo;</a></li>
+          <li><a href="<?php echo recipes_index_page_url($page + 1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">Next &raquo;</a></li>
         <?php } ?>
       </ul>
     </nav>

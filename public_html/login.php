@@ -63,7 +63,8 @@ if (is_post_request()) {
       <input type="text" name="username" id="username" value="<?php echo h($username); ?>"><br>
       <label for="password">Password:</label><br>
       <input type="password" name="password" id="password" value=""><br>
-      <input type="submit" name="submit" value="Log in">
+      <!-- <input type="submit" name="submit" value="Log in"> -->
+      <button type="submit" class="button">Log in</button>
       <input type="hidden" name="return_to" value="<?php echo h($return_to); ?>">
     </form>
     <span>New to anotherrecipe.site? <a href="<?php echo url_for('/signup.php'); ?>">Create an Account</a></span>
