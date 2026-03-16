@@ -6,9 +6,7 @@
 
       <section class="site-footer-section" aria-labelledby="footer-brand-heading">
         <h2 id="footer-brand-heading" class="site-footer-heading">anotherrecipe.site</h2>
-        <p class="site-footer-text">
-          A simple, no-nonsense place to discover recipes, save favorites, and share your own cooking.
-        </p>
+        <p class="site-footer-text">A simple, no-nonsense place to discover recipes, save favorites, and share your own cooking.</p>
       </section>
 
       <nav class="site-footer-section" aria-labelledby="footer-explore-heading">
@@ -19,6 +17,7 @@
           <?php if ($session->is_logged_in()) { ?>
             <li><a href="<?php echo url_for('/recipes/new.php'); ?>">Add a Recipe</a></li>
           <?php } ?>
+          <!-- <li><a href="<?php echo url_for('/about.php'); ?>"><span>About</span></a></li> -->
         </ul>
       </nav>
 

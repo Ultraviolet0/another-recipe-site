@@ -101,16 +101,22 @@ class User extends DatabaseObject
     if ($this->password_required) {
       if (is_blank($this->password)) {
         $this->errors[] = "Password cannot be blank.";
-      } elseif (!has_length($this->password, array('min' => 12))) {
-        $this->errors[] = "Password must contain 12 or more characters.";
-      } elseif (!preg_match('/[A-Z]/', $this->password)) {
-        $this->errors[] = "Password must contain at least 1 uppercase letter.";
-      } elseif (!preg_match('/[a-z]/', $this->password)) {
-        $this->errors[] = "Password must contain at least 1 lowercase letter.";
-      } elseif (!preg_match('/[0-9]/', $this->password)) {
-        $this->errors[] = "Password must contain at least 1 number.";
-      } elseif (!preg_match('/[^A-Za-z0-9\s]/', $this->password)) {
-        $this->errors[] = "Password must contain at least 1 symbol.";
+      } else {
+        if (!has_length($this->password, array('min' => 12))) {
+          $this->errors[] = "Password must contain 12 or more characters.";
+        }
+        if (!preg_match('/[A-Z]/', $this->password)) {
+          $this->errors[] = "Password must contain at least 1 uppercase letter.";
+        }
+        if (!preg_match('/[a-z]/', $this->password)) {
+          $this->errors[] = "Password must contain at least 1 lowercase letter.";
+        }
+        if (!preg_match('/[0-9]/', $this->password)) {
+          $this->errors[] = "Password must contain at least 1 number.";
+        }
+        if (!preg_match('/[^A-Za-z0-9\s]/', $this->password)) {
+          $this->errors[] = "Password must contain at least 1 symbol.";
+        }
       }
 
       if (is_blank($this->confirm_password)) {
@@ -184,6 +190,16 @@ class User extends DatabaseObject
     $role_name = strtolower($role_name);
     $roles = array_map('strtolower', $this->get_role_names());
     return in_array($role_name, $roles, true);
+  }
+
+  public function get_top_role() {
+    if ($this->has_role('super admin')) {
+      return 'Super Admin';
+    } elseif ($this->has_role('admin')) {
+      return 'Admin';
+    } else {
+      return 'Member';
+    }
   }
 
   public function add_role_by_name($role_name)

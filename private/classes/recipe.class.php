@@ -856,9 +856,24 @@ class Recipe extends DatabaseObject
       $joins[] = "LEFT JOIN recipe_ingredient_rcping sri ON sri.id_rcp_rcping = recipe_rcp.id_rcp";
       $joins[] = "LEFT JOIN ingredient_ing si ON si.id_ing = sri.id_ing_rcping";
 
+      $joins[] = "LEFT JOIN recipe_meal_type_rcpmty srm ON srm.id_rcp_rcpmty = recipe_rcp.id_rcp";
+      $joins[] = "LEFT JOIN meal_type_mty smty ON smty.id_mty = srm.id_mty_rcpmty";
+
+      $joins[] = "LEFT JOIN recipe_cuisine_rcpcsn src ON src.id_rcp_rcpcsn = recipe_rcp.id_rcp";
+      $joins[] = "LEFT JOIN cuisine_csn scsn ON scsn.id_csn = src.id_csn_rcpcsn";
+
+      $joins[] = "LEFT JOIN recipe_dietary_style_rcpdst srd ON srd.id_rcp_rcpdst = recipe_rcp.id_rcp";
+      $joins[] = "LEFT JOIN dietary_style_dst sdst ON sdst.id_dst = srd.id_dst_rcpdst";
+
+      $joins[] = "LEFT JOIN badge_bdg sbdg ON sbdg.id_bdg = recipe_rcp.id_bdg_rcp";
+
       $where[] = "(recipe_rcp.title_rcp LIKE '{$like}'
-              OR recipe_rcp.description_rcp LIKE '{$like}'
-              OR si.name_ing LIKE '{$like}')";
+            OR recipe_rcp.description_rcp LIKE '{$like}'
+            OR si.name_ing LIKE '{$like}'
+            OR smty.name_mty LIKE '{$like}'
+            OR scsn.name_csn LIKE '{$like}'
+            OR sdst.name_dst LIKE '{$like}'
+            OR sbdg.name_bdg LIKE '{$like}')";
     }
 
     return [
@@ -866,6 +881,7 @@ class Recipe extends DatabaseObject
       'where' => $where
     ];
   }
+
 
   protected static function build_filter_join_and_where(array $meal_type_ids = [], array $cuisine_ids = [], array $dietary_style_ids = []): array
   {

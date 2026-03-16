@@ -1,8 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-  document.body.classList.add('js');
-  init();
-});
-
 function initRecipeFilters() {
   const filterForm = document.querySelector('.recipe-filters form');
   if (!filterForm) return;
@@ -300,7 +295,8 @@ function initRecipeImageGallery() {
   });
 }
 
-function initHomeCarousels() {3
+function initHomeCarousels() {
+  3
 
   const wrappers = document.querySelectorAll('.home-carousel-wrapper');
 
@@ -333,10 +329,120 @@ function initHomeCarousels() {3
 
 }
 
+function initRecipeFormEnhancements() {
+  const addIngredientButton = document.getElementById('add-ingredient-button');
+  const addStepButton = document.getElementById('add-step-button');
+
+  if (addIngredientButton) {
+    addIngredientButton.addEventListener('click', function (event) {
+      event.preventDefault();
+
+      const fieldset = addIngredientButton.closest('fieldset');
+      if (!fieldset) return;
+
+      const rows = fieldset.querySelectorAll('.ingredient-row');
+      if (!rows.length) return;
+
+      const lastRow = rows[rows.length - 1];
+      const newRow = lastRow.cloneNode(true);
+      const newIndex = rows.length;
+
+      const labels = newRow.querySelectorAll('label');
+      const inputs = newRow.querySelectorAll('input, select');
+
+      labels.forEach((label) => {
+        const oldFor = label.getAttribute('for');
+        if (!oldFor) return;
+
+        let newFor = oldFor
+          .replace(/qty-ingredient-\d+/, `qty-ingredient-${newIndex}`)
+          .replace(/unit-ingredient-\d+/, `unit-ingredient-${newIndex}`)
+          .replace(/name-ingredient-\d+/, `name-ingredient-${newIndex}`);
+
+        label.setAttribute('for', newFor);
+      });
+
+      inputs.forEach((field) => {
+        const oldId = field.getAttribute('id');
+        const oldName = field.getAttribute('name');
+
+        if (oldId) {
+          const newId = oldId
+            .replace(/qty-ingredient-\d+/, `qty-ingredient-${newIndex}`)
+            .replace(/unit-ingredient-\d+/, `unit-ingredient-${newIndex}`)
+            .replace(/name-ingredient-\d+/, `name-ingredient-${newIndex}`);
+          field.setAttribute('id', newId);
+        }
+
+        if (oldName) {
+          const newName = oldName.replace(/\[\d+\]/, `[${newIndex}]`);
+          field.setAttribute('name', newName);
+        }
+
+        if (field.tagName === 'SELECT') {
+          field.selectedIndex = 0;
+        } else {
+          field.value = '';
+        }
+      });
+
+      addIngredientButton.insertAdjacentElement('beforebegin', newRow);
+
+      const firstField = newRow.querySelector('input, select');
+      if (firstField) {
+        firstField.focus();
+      }
+    });
+  }
+
+  if (addStepButton) {
+    addStepButton.addEventListener('click', function (event) {
+      event.preventDefault();
+
+      const fieldset = addStepButton.closest('fieldset');
+      if (!fieldset) return;
+
+      const rows = fieldset.querySelectorAll('.direction-row');
+      if (!rows.length) return;
+
+      const lastRow = rows[rows.length - 1];
+      const newRow = lastRow.cloneNode(true);
+      const newIndex = rows.length;
+
+      const label = newRow.querySelector('label');
+      const textarea = newRow.querySelector('textarea');
+
+      if (label) {
+        label.setAttribute('for', `direction-step-${newIndex}`);
+        label.textContent = `Step ${newIndex + 1}`;
+      }
+
+      if (textarea) {
+        textarea.setAttribute('id', `direction-step-${newIndex}`);
+        const oldName = textarea.getAttribute('name');
+        if (oldName) {
+          textarea.setAttribute('name', oldName.replace(/\[\d+\]/, `[${newIndex}]`));
+        }
+        textarea.value = '';
+      }
+
+      addStepButton.insertAdjacentElement('beforebegin', newRow);
+
+      if (textarea) {
+        textarea.focus();
+      }
+    });
+  }
+}
+
 function init() {
   initRecipeFilters();
   initIngredientScaling();
   initAutoRating();
   initRecipeImageGallery();
   initHomeCarousels();
+  initRecipeFormEnhancements();
 }
+
+document.body.classList.add('js');
+init();

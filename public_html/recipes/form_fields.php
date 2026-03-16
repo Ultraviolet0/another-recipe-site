@@ -116,19 +116,19 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
       </div>
     </div>
   <?php } ?>
-  <button type="submit" class="button button-secondary" name="action" value="add_ingredient" formnovalidate>Add Ingredient</button>
+  <button type="submit" class="button button-secondary" name="action" id="add-ingredient-button" value="add_ingredient" formnovalidate>Add Ingredient</button>
 </fieldset>
 
 <fieldset>
   <legend>Directions*</legend>
 
   <?php foreach (($draft['directions'] ?? []) as $i => $dir) { ?>
-    <div class="recipe-row-group">
+    <div class="direction-row">
       <label for="direction-step-<?php echo h($i); ?>">Step <?php echo $i + 1; ?></label><br>
       <textarea id="direction-step-<?php echo h($i); ?>" name="directions[<?php echo $i; ?>][instruction_dir]" rows="3" cols="60"><?php echo h($dir['instruction_dir'] ?? ''); ?></textarea>
     </div>
   <?php } ?>
-  <button type="submit" class="button button-secondary" name="action" value="add_direction" formnovalidate>Add Step</button>
+  <button type="submit" class="button button-secondary" name="action" id="add-step-button" value="add_direction" formnovalidate>Add Step</button>
 </fieldset>
 
 <fieldset>
@@ -136,5 +136,5 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 
   <label for="photos">Upload Photos</label><br>
   <input id="photos" type="file" name="photos[]" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-  <p class="form-help">You may upload up to 6 images (JPG/PNG/WebP). Add photos after finishing ingredients and steps (file selections reset when the page reloads).</p>
+  <p class="form-help">You may upload up to 6 images (JPG/PNG/WebP). <span>Add photos after finishing ingredients and steps (file selections reset when the page reloads).</span></p>
 </fieldset>

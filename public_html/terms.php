@@ -1,11 +1,11 @@
 <?php
 require_once('../private/initialize.php');
-$page_title = 'REPLACE ME';
+$page_title = 'Terms & Conditions';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
 <div class="wrapper">
-
+<h2>Placeholder</h2>
 </div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

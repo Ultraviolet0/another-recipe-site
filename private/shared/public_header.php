@@ -21,7 +21,7 @@
   <a href="#main-content" id="skip-link">Skip to main content</a>
   <header role="banner">
     <div class="wrapper">
-      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <input type="checkbox" id="nav-toggle">
       <div id="site-header-bar">
         <h1>
           <a href="<?php echo url_for('/'); ?>">
@@ -67,7 +67,7 @@
           </a>
         </h1>
 
-        <label for="nav-toggle" class="nav-toggle-label">
+        <label for="nav-toggle" id="nav-toggle-label">
           <span>Menu</span>
         </label>
       </div>
@@ -79,6 +79,7 @@
             <?php if ($session->is_logged_in()) { ?>
               <li><a href="<?php echo url_for('/recipes/new.php'); ?>"><span>Add Recipe</span></a></li>
             <?php } ?>
+            <!-- <li><a href="<?php echo url_for('/about.php'); ?>"><span>About</span></a></li> -->
           </ul>
           <form role="search" action="<?php echo url_for('/recipes'); ?>" method="get" id="search-form">
             <label for="search" class="visually-hidden">Search recipes</label>
@@ -90,6 +91,7 @@
               <li><a href="<?php echo url_for('/logout.php'); ?>"><span id="logout">Logout <small>(<?php echo $session->username ?>)</small></span></a></li>
             <?php } else { ?>
               <li><a href="<?php echo url_for('/login.php'); ?>"><span id="login">Login</span></a></li>
+              <!-- <li><a href="<?php echo url_for('/signup.php'); ?>"><span id="signup">Signup</span></a></li> -->
             <?php } ?>
           </ul>
         </nav>

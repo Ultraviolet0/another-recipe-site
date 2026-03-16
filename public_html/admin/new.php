@@ -2,21 +2,20 @@
 require_once('../../private/initialize.php');
 require_admin_login();
 
-if(is_post_request()) {
+if (is_post_request()) {
 
   // Create record using post parameters
   $args = $_POST['user'];
   $user = new User($args);
   $result = $user->save();
 
-  if($result === true) {
+  if ($result === true) {
     $new_id = $user->id_usr;
     $session->message('The user was created successfully.');
     redirect_to(url_for('/admin/show.php?id=' . $new_id));
-  } else { 
+  } else {
     // show errors
   }
-
 } else {
   // display the form
   $user = new User;
@@ -27,26 +26,16 @@ if(is_post_request()) {
 <?php $page_title = 'Create User'; ?>
 <?php include(SHARED_PATH . '/public_header.php'); ?>
 
-<main id="main-content">
-
+<div class="wrapper">
   <a class="back-link" href="<?php echo url_for('/admin/index.php'); ?>">&laquo; Back to List</a>
-
   <div>
     <h2>Create User</h2>
-
     <?php echo display_errors($user->errors); ?>
-
     <form action="<?php echo url_for('/admin/new.php'); ?>" method="post">
-
       <?php include('form_fields.php'); ?>
-
-      <div>
-        <input type="submit" value="Create User">
-      </div>
+      <button class="button" type="submit">Create User</button>
     </form>
-
   </div>
-
-</main>
+</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

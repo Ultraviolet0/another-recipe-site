@@ -61,7 +61,6 @@ if (is_post_request()) {
 
   recipe_save_draft($draft);
 
-  // PRG redirect: avoids resubmits and keeps "no JS" UX sane
   redirect_to(url_for('/recipes/new.php'));
 }
 

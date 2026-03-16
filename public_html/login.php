@@ -35,7 +35,11 @@ if (is_post_request()) {
       if ($return_to && strpos($return_to, '/') === 0 && strpos($return_to, '//') !== 0) {
         redirect_to($return_to);
       } else {
-        redirect_to(url_for('/'));
+        if ($session->is_admin_logged_in()) {
+          redirect_to(url_for('/admin'));
+        } else {
+          redirect_to(url_for('/'));
+        }
       }
     } else {
       if (!$user) {
@@ -60,10 +64,9 @@ if (is_post_request()) {
     <?php echo display_errors($errors); ?>
     <form action="<?php echo url_for('/login.php'); ?>" method="post">
       <label for="username">Username:</label><br>
-      <input type="text" name="username" id="username" value="<?php echo h($username); ?>"><br>
+      <input type="text" name="username" id="username" value="<?php echo h($username); ?>" required><br>
       <label for="password">Password:</label><br>
-      <input type="password" name="password" id="password" value=""><br>
-      <!-- <input type="submit" name="submit" value="Log in"> -->
+      <input type="password" name="password" id="password" value="" required><br>
       <button type="submit" class="button">Log in</button>
       <input type="hidden" name="return_to" value="<?php echo h($return_to); ?>">
     </form>

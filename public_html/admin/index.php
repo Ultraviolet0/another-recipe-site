@@ -6,44 +6,37 @@ $users = User::find_all();
 $page_title = 'Users';
 include(SHARED_PATH . '/public_header.php'); ?>
 
-<div class="members listing">
-  <h1>Members</h1>
-
-  <div>
-    <a href="<?php echo url_for('/admin/new.php'); ?>">Add User</a>
-  </div>
-
-  <table>
-    <tr>
-      <th>ID</th>
-      <th>Username</th>
-      <th>Email</th>
-      <th>Member Type</th>
-      <th>Status</th>
-      <th>Image Path</th>
-      <th>Created At</th>
-      <th>Updated At</th>
-      <th>&nbsp;</th>
-      <th>&nbsp;</th>
-      <th>&nbsp;</th>
-    </tr>
-
-    <?php foreach ($users as $user) { ?>
+<div class="wrapper">
+  <div class="container">
+    <h2>Users</h2>
+    <div>
+      <a href="<?php echo url_for('/admin/new.php'); ?>">Add User</a>
+    </div>
+    <table>
       <tr>
-        <td><?php echo h($user->id_usr); ?></td>
-        <td><?php echo h($user->username_usr); ?></td>
-        <td><?php echo h($user->email_usr); ?></td>
-        <td><?php echo h($user->get_role_names()); ?></td>
-        <td><?php echo h($user->status_usr); ?></td>
-        <td><?php echo h($user->id_img_usr); ?></td>
-        <td><?php echo h($user->created_at_usr); ?></td>
-        <td><?php echo h($user->updated_at_usr); ?></td>
-        <td><a href="<?php echo url_for('/admin/show.php?id=' . h(u($user->id_usr))); ?>">View</a></td>
-        <td><a href="<?php echo url_for('/admin/edit.php?id=' . h(u($user->id_usr))); ?>">Edit</a></td>
-        <td><a href="<?php echo url_for('/admin/delete.php?id=' . h(u($user->id_usr))); ?>">Delete</a></td>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Member Type</th>
+        <th>Status</th>
+        <th>&nbsp;</th>
+        <th>&nbsp;</th>
+        <th>&nbsp;</th>
       </tr>
-    <?php } ?>
-  </table>
+      <?php foreach ($users as $user) { ?>
+        <tr>
+          <td><?php echo h($user->id_usr); ?></td>
+          <td><?php echo h($user->username_usr); ?></td>
+          <td><?php echo h($user->email_usr); ?></td>
+          <td><?php echo h($user->get_top_role()); ?></td>
+          <td><?php echo h($user->status_usr); ?></td>
+          <td><a href="<?php echo url_for('/admin/show.php?id=' . h(u($user->id_usr))); ?>">View</a></td>
+          <td><a href="<?php echo url_for('/admin/edit.php?id=' . h(u($user->id_usr))); ?>">Edit</a></td>
+          <td><a href="<?php echo url_for('/admin/delete.php?id=' . h(u($user->id_usr))); ?>">Delete</a></td>
+        </tr>
+      <?php } ?>
+    </table>
+  </div>
 
 </div>
 
