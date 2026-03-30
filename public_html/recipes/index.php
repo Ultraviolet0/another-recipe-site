@@ -63,7 +63,7 @@ include(SHARED_PATH . '/public_header.php');
 <div class="wrapper">
   <section class="recipes-index-header">
     <div>
-      <h2>Recipes</h2>
+      <h1>Browse Recipes</h1>
       <?php if ($search !== '') { ?>
         <p>Showing results for "<strong><?php echo h($search); ?></strong>"</p>
       <?php } ?>

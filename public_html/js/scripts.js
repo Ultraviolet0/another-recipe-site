@@ -296,7 +296,6 @@ function initRecipeImageGallery() {
 }
 
 function initHomeCarousels() {
-  3
 
   const wrappers = document.querySelectorAll('.home-carousel-wrapper');
 
@@ -330,8 +329,40 @@ function initHomeCarousels() {
 }
 
 function initRecipeFormEnhancements() {
+  const cuisineCheckboxes = document.querySelectorAll('input[name="cuisines[]"]');
+  const cuisineMax = 3;
   const addIngredientButton = document.getElementById('add-ingredient-button');
   const addStepButton = document.getElementById('add-step-button');
+
+  function updateCuisineState() {
+    const checked = Array.from(cuisineCheckboxes).filter(c => c.checked);
+    const isAtMax = checked.length >= cuisineMax;
+
+    cuisineCheckboxes.forEach(cb => {
+      if (!cb.checked) {
+        cb.disabled = isAtMax;
+      } else {
+        cb.disabled = false;
+      }
+
+      const pill = cb.nextElementSibling;
+      if (!pill) { return };
+
+      if (cb.disabled) {
+        pill.classList.add('is-disabled');
+      } else {
+        pill.classList.remove('is-disabled');
+      }
+    });
+  }
+
+  if (cuisineCheckboxes.length) {
+    cuisineCheckboxes.forEach(cb => {
+      cb.addEventListener('change', updateCuisineState);
+    });
+
+    updateCuisineState();
+  }
 
   if (addIngredientButton) {
     addIngredientButton.addEventListener('click', function (event) {
@@ -435,6 +466,95 @@ function initRecipeFormEnhancements() {
   }
 }
 
+function initFlashToast() {
+  const flashToast = document.querySelector('.flash-toast');
+  if (!flashToast) return;
+
+  const closeButton = flashToast.querySelector('.flash-toast-close');
+  let hideTimeout = null;
+
+  function hideFlashToast() {
+    flashToast.classList.add('is-hiding');
+
+    window.setTimeout(() => {
+      flashToast.remove();
+    }, 300);
+  }
+
+  if (closeButton) {
+    closeButton.addEventListener('click', hideFlashToast);
+  }
+
+  hideTimeout = window.setTimeout(hideFlashToast, 4000);
+
+  flashToast.addEventListener('mouseenter', () => {
+    window.clearTimeout(hideTimeout);
+  });
+
+  flashToast.addEventListener('mouseleave', () => {
+    hideTimeout = window.setTimeout(hideFlashToast, 2500);
+  });
+}
+
+function initHeaderUserMenu() {
+  const menu = document.querySelector('.header-user-menu');
+  const toggle = document.getElementById('header-user-menu-toggle');
+  const panel = document.getElementById('header-user-menu-panel');
+
+  if (!menu || !toggle || !panel) return;
+
+  function isMobileMenuMode() {
+    return window.innerWidth <= 850;
+  }
+
+  function closeMenu() {
+    if (isMobileMenuMode()) return;
+    menu.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  function openMenu() {
+    if (isMobileMenuMode()) return;
+    menu.classList.add('is-open');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  toggle.addEventListener('click', function () {
+    if (isMobileMenuMode()) return;
+
+    const isOpen = menu.classList.contains('is-open');
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  document.addEventListener('click', function (event) {
+    if (isMobileMenuMode()) return;
+
+    if (!menu.contains(event.target)) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (isMobileMenuMode()) return;
+
+    if (event.key === 'Escape') {
+      closeMenu();
+      toggle.focus();
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    if (isMobileMenuMode()) {
+      menu.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
 function init() {
   initRecipeFilters();
   initIngredientScaling();
@@ -442,6 +562,8 @@ function init() {
   initRecipeImageGallery();
   initHomeCarousels();
   initRecipeFormEnhancements();
+  initFlashToast();
+  initHeaderUserMenu();
 }
 
 document.body.classList.add('js');

@@ -17,14 +17,6 @@ function gd_load_image($filepath, $image_type)
   };
 }
 
-function gd_destroy_image(&$img)
-{
-  if ($img instanceof GdImage || is_resource($img)) {
-    imagedestroy($img);
-  }
-  $img = null;
-}
-
 function save_webp_image($img, $filepath, $quality = 80)
 {
   if (!function_exists('imagewebp')) {
@@ -157,12 +149,12 @@ function process_recipe_upload($file, $upload_root_public)
   $ok400  = save_webp_image($img_400,  $path_400,  72);
   $ok270  = save_webp_image($img_270,  $path_270,  74);
 
-  gd_destroy_image($src_img);
-  gd_destroy_image($img_1600);
-  gd_destroy_image($img_800);
-  gd_destroy_image($img_540);
-  gd_destroy_image($img_400);
-  gd_destroy_image($img_270);
+  $src_img = null;
+  $img_1600 = null;
+  $img_800 = null;
+  $img_540 = null;
+  $img_400 = null;
+  $img_270 = null;
 
   if (!$ok1600 || !$ok800 || !$ok540 || !$ok400 || !$ok270) {
     @unlink($path_1600);

@@ -6,7 +6,7 @@ if (!ctype_digit($id)) {
   redirect_to(url_for('/recipes'));
 }
 
-$recipe = Recipe::find_by_id($id);
+$recipe = Recipe::find_with_creator_by_id($id);
 /** @var Recipe $recipe */
 
 if (!$recipe) {
@@ -71,7 +71,7 @@ include(SHARED_PATH . '/public_header.php');
   <div class="container">
     <div class="recipe-show">
 
-      <h2><?php echo h($recipe->title_rcp); ?></h2>
+      <h1 title="<?php echo h($recipe->title_rcp); ?> Recipe"><?php echo h($recipe->title_rcp); ?> Recipe</h1>
 
       <?php if (!is_blank($recipe->description_rcp)) { ?>
         <p class="recipe-description"><?php echo h($recipe->description_rcp); ?></p>
@@ -96,7 +96,11 @@ include(SHARED_PATH . '/public_header.php');
           </span>
         <?php } ?>
 
-        <span><strong>Privacy:</strong> <?php echo h(display_title_case($recipe->privacy_rcp)); ?></span>
+        <!-- <span><strong>Privacy:</strong> <?php echo h(display_title_case($recipe->privacy_rcp)); ?></span> -->
+
+        <?php if ($recipe->creator_username()) { ?>
+          <span><strong>By:</strong> <a href="<?php echo $recipe->creator_profile_url(); ?>"><?php echo h($recipe->creator_username()); ?></a></span>
+        <?php } ?>
       </div>
 
       <div class="recipe-actions">

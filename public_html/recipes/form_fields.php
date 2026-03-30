@@ -17,7 +17,7 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
   <legend>Recipe</legend>
 
   <label for="title">Title*</label><br>
-  <input type="text" id="title" name="recipe[title_rcp]" value="<?php echo h($draft['recipe']['title_rcp'] ?? ''); ?>" required><br>
+  <input type="text" id="title" name="recipe[title_rcp]" maxlength="255" value="<?php echo h($draft['recipe']['title_rcp'] ?? ''); ?>" required><br>
 
   <label for="description">Description (500 characters max)</label><br>
   <textarea id="description" name="recipe[description_rcp]" maxlength="500" rows="3"><?php echo h($draft['recipe']['description_rcp'] ?? ''); ?></textarea><br>
@@ -60,7 +60,7 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 </fieldset>
 
 <fieldset>
-  <legend>Cuisine</legend>
+  <legend>Cuisine (max 3)</legend>
   <div class="pill-group">
     <?php foreach ($cuisines as $csn) {
       $id = (string)$csn->id_csn;

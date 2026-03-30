@@ -15,7 +15,7 @@ if (!isset($user)) {
 <label for="password">Password</label><br>
 <input type="password" id="password" name="user[password]" value=""><br>
 
-<p class="form-help">Password must contain at least 12 characters, including an uppercase letter, lowercase letter, number, and symbol.</p>
+<p class="form-help">Password must contain at least 8 characters, including an uppercase letter, lowercase letter, and a number or symbol.</p>
 
 <label for="confirm-password">Confirm Password</label><br>
 <input type="password" id="confirm-password" name="user[confirm_password]" value=""><br>

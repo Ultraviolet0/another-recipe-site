@@ -23,12 +23,16 @@ CREATE TABLE `image_img` (
 CREATE TABLE `user_usr` (
   `id_usr` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `username_usr` VARCHAR(32) UNIQUE NOT NULL,
+  `display_name_usr` VARCHAR(100) NULL,
   `email_usr` VARCHAR(255) UNIQUE NOT NULL,
   `password_hash_usr` VARCHAR(255) NOT NULL,
   `status_usr` ENUM ('pending', 'active', 'disabled') NOT NULL DEFAULT 'pending',
   `id_img_usr` INT UNSIGNED DEFAULT NULL,
   `created_at_usr` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at_usr` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_login_at_usr` TIMESTAMP NULL DEFAULT NULL,
+  `bio_usr` TEXT NULL,
+  `location_usr` VARCHAR(100) NULL,
   CONSTRAINT `fk_img_usr` FOREIGN KEY (`id_img_usr`) REFERENCES `image_img` (`id_img`) ON DELETE SET NULL,
   INDEX `idx_status_usr` (`status_usr`)
 );

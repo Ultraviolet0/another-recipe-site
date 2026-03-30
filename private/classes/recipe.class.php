@@ -31,6 +31,9 @@ class Recipe extends DatabaseObject
   public $created_at_rcp;
   public $updated_at_rcp;
 
+  // Non-DB Properties
+  public $creator_username_usr;
+
   public function __construct($args = [])
   {
     $this->id_usr_rcp = $args['id_usr_rcp'] ?? null;
@@ -42,6 +45,24 @@ class Recipe extends DatabaseObject
     $this->prep_time_minutes_rcp = $args['prep_time_minutes_rcp'] ?? 0;
     $this->cook_time_minutes_rcp = $args['cook_time_minutes_rcp'] ?? 0;
     $this->youtube_url_rcp = blank_to_null($args['youtube_url_rcp'] ?? null);
+  }
+
+  public static function find_with_creator_by_id($id)
+  {
+    if (!ctype_digit((string)$id)) {
+      return false;
+    }
+
+    $safe_id = self::$database->escape_string($id);
+
+    $sql = "SELECT recipe_rcp.*, user_usr.username_usr AS creator_username_usr ";
+    $sql .= "FROM recipe_rcp ";
+    $sql .= "LEFT JOIN user_usr ON user_usr.id_usr = recipe_rcp.id_usr_rcp ";
+    $sql .= "WHERE recipe_rcp.id_rcp = '{$safe_id}' ";
+    $sql .= "LIMIT 1";
+
+    $object_array = static::find_by_sql($sql);
+    return !empty($object_array) ? array_shift($object_array) : false;
   }
 
   protected function validate()
@@ -85,7 +106,7 @@ class Recipe extends DatabaseObject
       return false;
     }
 
-    $child_errors = $this->validate_children($ingredients, $directions, $photo_files);
+    $child_errors = $this->validate_children($cuisine_ids, $ingredients, $directions, $photo_files);
     if (!empty($child_errors)) {
       $this->errors = array_merge($this->errors, $child_errors);
       return false;
@@ -133,7 +154,7 @@ class Recipe extends DatabaseObject
       return false;
     }
 
-    $child_errors = $this->validate_children($ingredients, $directions, $photo_files);
+    $child_errors = $this->validate_children($cuisine_ids, $ingredients, $directions, $photo_files);
     if (!empty($child_errors)) {
       $this->errors = array_merge($this->errors, $child_errors);
       return false;
@@ -170,9 +191,13 @@ class Recipe extends DatabaseObject
     }
   }
 
-  protected function validate_children($ingredients, $directions, $photo_files = null)
+  protected function validate_children($cuisine_ids, $ingredients, $directions, $photo_files = null)
   {
     $errors = [];
+
+    if (count($cuisine_ids) > 3) {
+      $errors[] = "You may select up to 3 cuisines.";
+    }
 
     $has_ing = false;
     foreach ($ingredients as $row) {
@@ -1153,6 +1178,166 @@ class Recipe extends DatabaseObject
     $sql .= "AND (prep_time_minutes_rcp + cook_time_minutes_rcp) <= 30 ";
     $sql .= "ORDER BY updated_at_rcp DESC ";
     $sql .= "LIMIT {$limit}";
+
+    return static::find_by_sql($sql);
+  }
+
+  public static function find_public_by_user_id($user_id, int $limit = 8): array
+  {
+    $safe_user_id = self::$database->escape_string($user_id);
+    $limit = max(1, (int)$limit);
+
+    $sql = "SELECT *
+          FROM recipe_rcp
+          WHERE id_usr_rcp = '{$safe_user_id}'
+          AND privacy_rcp = 'public'
+          ORDER BY updated_at_rcp DESC
+          LIMIT {$limit}";
+
+    return static::find_by_sql($sql);
+  }
+
+  public static function count_public_by_user_id($user_id): int
+  {
+    $safe_user_id = self::$database->escape_string($user_id);
+
+    $sql = "SELECT COUNT(*) AS recipe_count
+          FROM recipe_rcp
+          WHERE id_usr_rcp = '{$safe_user_id}'
+          AND privacy_rcp = 'public'";
+
+    $result = self::$database->query($sql);
+    if (!$result) {
+      return 0;
+    }
+
+    $row = $result->fetch_assoc();
+    $result->free();
+
+    return (int)($row['recipe_count'] ?? 0);
+  }
+
+  public static function average_rating_for_public_recipes_by_user_id($user_id): ?float
+  {
+    $safe_user_id = self::$database->escape_string($user_id);
+
+    $sql = "SELECT AVG(r.rating_rtg) AS avg_rating
+          FROM recipe_rcp recipe
+          LEFT JOIN rating_rtg r ON r.id_rcp_rtg = recipe.id_rcp
+          WHERE recipe.id_usr_rcp = '{$safe_user_id}'
+          AND recipe.privacy_rcp = 'public'";
+
+    $result = self::$database->query($sql);
+    if (!$result) {
+      return null;
+    }
+
+    $row = $result->fetch_assoc();
+    $result->free();
+
+    return ($row['avg_rating'] !== null) ? (float)$row['avg_rating'] : null;
+  }
+
+  public function creator_username(): ?string
+  {
+    return $this->creator_username_usr ?? null;
+  }
+
+  public function creator_profile_url(): string
+  {
+    return url_for('/profile.php?id=' . u($this->id_usr_rcp));
+  }
+
+  public static function count_by_user_id($user_id): int
+  {
+    if (!ctype_digit((string)$user_id)) {
+      return 0;
+    }
+
+    $safe_user_id = self::$database->escape_string($user_id);
+
+    $sql = "SELECT COUNT(*) AS recipe_count
+          FROM recipe_rcp
+          WHERE id_usr_rcp = '{$safe_user_id}'";
+
+    $result = self::$database->query($sql);
+    if (!$result) {
+      return 0;
+    }
+
+    $row = $result->fetch_assoc();
+    $result->free();
+
+    return (int)($row['recipe_count'] ?? 0);
+  }
+
+  public static function count_by_user_id_and_privacy($user_id, $privacy): int
+  {
+    if (!ctype_digit((string)$user_id)) {
+      return 0;
+    }
+
+    $valid_privacies = ['public', 'unlisted', 'private'];
+    if (!in_array($privacy, $valid_privacies, true)) {
+      return 0;
+    }
+
+    $safe_user_id = self::$database->escape_string($user_id);
+    $safe_privacy = self::$database->escape_string($privacy);
+
+    $sql = "SELECT COUNT(*) AS recipe_count
+          FROM recipe_rcp
+          WHERE id_usr_rcp = '{$safe_user_id}'
+          AND privacy_rcp = '{$safe_privacy}'";
+
+    $result = self::$database->query($sql);
+    if (!$result) {
+      return 0;
+    }
+
+    $row = $result->fetch_assoc();
+    $result->free();
+
+    return (int)($row['recipe_count'] ?? 0);
+  }
+
+  public static function find_by_user_id($user_id, int $limit = 5): array
+  {
+    if (!ctype_digit((string)$user_id)) {
+      return [];
+    }
+
+    $safe_user_id = self::$database->escape_string($user_id);
+    $limit = max(1, (int)$limit);
+
+    $sql = "SELECT *
+          FROM recipe_rcp
+          WHERE id_usr_rcp = '{$safe_user_id}'
+          ORDER BY updated_at_rcp DESC
+          LIMIT {$limit}";
+
+    return static::find_by_sql($sql);
+  }
+
+  public static function find_by_user_id_filtered($user_id, string $privacy = ''): array
+  {
+    if (!ctype_digit((string)$user_id)) {
+      return [];
+    }
+
+    $safe_user_id = self::$database->escape_string($user_id);
+    $valid_privacies = ['public', 'unlisted', 'private'];
+
+    $sql = "SELECT *
+          FROM recipe_rcp
+          WHERE id_usr_rcp = '{$safe_user_id}' ";
+
+    if ($privacy !== '' && in_array($privacy, $valid_privacies, true)) {
+      $safe_privacy = self::$database->escape_string($privacy);
+      $sql .= "AND privacy_rcp = '{$safe_privacy}' ";
+    }
+
+    $sql .= "ORDER BY updated_at_rcp DESC";
 
     return static::find_by_sql($sql);
   }

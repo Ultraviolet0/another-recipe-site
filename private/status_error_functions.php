@@ -38,6 +38,12 @@ function display_session_message()
   $msg = $session->message();
   if (isset($msg) && $msg != '') {
     $session->clear_message();
-    return '<div class="wrapper"><div class="container">' . h($msg) . '</div></div>';
+    return '
+    <div class="flash-toast" role="status" aria-live="polite">
+      <div class="flash-toast-inner">
+        <p>' . h($msg) . '</p>
+        <button type="button" class="flash-toast-close" aria-label="Dismiss message">&times;</button>
+      </div>
+    </div>';
   }
 }

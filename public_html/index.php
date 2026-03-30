@@ -14,9 +14,9 @@ include(SHARED_PATH . '/public_header.php');
   <section class="home-hero">
     <div class="wrapper">
       <div class="home-hero-content">
-        <p class="home-hero-kicker">Welcome to anotherrecipe.site</p>
+        <h1 class="home-hero-kicker">Welcome to anotherrecipe.site</h1>
         <h2>Find and share recipes without the fluff.</h2>
-        <p class="home-hero-text">Another Recipe Site is a simple, no-nonsense place to discover recipes, save favorites, and share your own cooking with the community.</p>
+        <p class="home-hero-text">anotherrecipe.site is a simple, no-nonsense place to discover recipes, save favorites, and share your own cooking with the community.</p>
 
         <div class="home-hero-actions">
           <?php if ($session->is_logged_in()) { ?>

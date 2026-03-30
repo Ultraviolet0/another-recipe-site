@@ -29,6 +29,7 @@ require_once('database_functions.php');
 require_once('validation_functions.php');
 require_once('recipe_functions.php');
 require_once('image_upload_functions.php');
+require_once('security_functions.php');
 
 // Autoload class definitions
 function my_autoload($class)

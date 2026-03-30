@@ -97,7 +97,7 @@ include(SHARED_PATH . '/public_header.php');
 ?>
 
   <div class="recipe-form">
-    <h2>Edit Recipe</h2>
+    <h1>Edit Recipe</h1>
     <p class="form-help">Fields marked with a * are required.</p>
 
     <?php echo display_errors($recipe_for_errors->errors); ?>

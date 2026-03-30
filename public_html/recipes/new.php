@@ -70,7 +70,7 @@ if (is_post_request()) {
 <?php include(SHARED_PATH . '/public_header.php'); ?>
 
   <div class="recipe-form">
-    <h2>Add Recipe</h2>
+    <h1>Add Recipe</h1>
     <p class="form-help">Fields marked with a * are required.</p>
     <?php echo display_errors($recipe->errors); ?>
     <form action="<?php echo url_for('/recipes/new.php'); ?>" method="post" enctype="multipart/form-data">

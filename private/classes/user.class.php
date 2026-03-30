@@ -4,17 +4,21 @@ class User extends DatabaseObject
 {
   static protected $table_name = 'user_usr';
   static protected $primary_key = 'id_usr';
-  static protected $db_columns = ['id_usr', 'username_usr', 'email_usr', 'password_hash_usr', 'status_usr', 'id_img_usr'];
+  static protected $db_columns = ['id_usr', 'username_usr', 'display_name_usr', 'email_usr', 'password_hash_usr', 'status_usr', 'id_img_usr', 'last_login_at_usr', 'bio_usr', 'location_usr'];
 
   // DB Columns
   public $id_usr;
   public $username_usr;
+  public $display_name_usr;
   public $email_usr;
   protected $password_hash_usr;
   public $status_usr;
   public $id_img_usr;
   public $created_at_usr;
   public $updated_at_usr;
+  public $last_login_at_usr;
+  public $bio_usr;
+  public $location_usr;
 
   // Not DB Columns (from form)
   public $password;
@@ -28,6 +32,7 @@ class User extends DatabaseObject
     $this->email_usr = $args['email_usr'] ?? null;
     $this->status_usr = $args['status_usr'] ?? 'pending';
     $this->id_img_usr = $args['id_img_usr'] ?? null;
+    $this->last_login_at_usr = $args['last_login_at_usr'] ?? null;
 
     $this->password = $args['password'] ?? null;
     $this->confirm_password = $args['confirm_password'] ?? null;
@@ -102,8 +107,8 @@ class User extends DatabaseObject
       if (is_blank($this->password)) {
         $this->errors[] = "Password cannot be blank.";
       } else {
-        if (!has_length($this->password, array('min' => 12))) {
-          $this->errors[] = "Password must contain 12 or more characters.";
+        if (!has_length($this->password, array('min' => 8))) {
+          $this->errors[] = "Password must contain 8 or more characters.";
         }
         if (!preg_match('/[A-Z]/', $this->password)) {
           $this->errors[] = "Password must contain at least 1 uppercase letter.";
@@ -111,12 +116,15 @@ class User extends DatabaseObject
         if (!preg_match('/[a-z]/', $this->password)) {
           $this->errors[] = "Password must contain at least 1 lowercase letter.";
         }
-        if (!preg_match('/[0-9]/', $this->password)) {
-          $this->errors[] = "Password must contain at least 1 number.";
+        if (!preg_match('/[0-9]/', $this->password) && !preg_match('/[^A-Za-z0-9\s]/', $this->password)) {
+          $this->errors[] = "Password must contain at least 1 number or symbol.";
         }
-        if (!preg_match('/[^A-Za-z0-9\s]/', $this->password)) {
-          $this->errors[] = "Password must contain at least 1 symbol.";
-        }
+        // if (!preg_match('/[0-9]/', $this->password)) {
+        //   $this->errors[] = "Password must contain at least 1 number.";
+        // }
+        // if (!preg_match('/[^A-Za-z0-9\s]/', $this->password)) {
+        //   $this->errors[] = "Password must contain at least 1 symbol.";
+        // }
       }
 
       if (is_blank($this->confirm_password)) {
@@ -192,7 +200,8 @@ class User extends DatabaseObject
     return in_array($role_name, $roles, true);
   }
 
-  public function get_top_role() {
+  public function get_top_role()
+  {
     if ($this->has_role('super admin')) {
       return 'Super Admin';
     } elseif ($this->has_role('admin')) {
@@ -292,5 +301,58 @@ class User extends DatabaseObject
     $this->roles = $clean_role_names;
 
     return true;
+  }
+
+  public function profile_image_url(): ?string
+  {
+    if (is_blank($this->id_img_usr)) {
+      return null;
+    }
+
+    $safe_id = self::$database->escape_string($this->id_img_usr);
+    $sql = "SELECT file_name_img
+          FROM image_img
+          WHERE id_img = '{$safe_id}'
+          LIMIT 1";
+
+    $result = self::$database->query($sql);
+    if ($result && $row = $result->fetch_assoc()) {
+      $result->free();
+      return url_for('/uploads/profile/270/' . u($row['file_name_img']));
+    }
+
+    return null;
+  }
+
+  public function update_last_login(): bool
+  {
+    if (is_blank($this->id_usr)) {
+      return false;
+    }
+
+    $safe_id = self::$database->escape_string($this->id_usr);
+
+    $sql = "UPDATE " . static::$table_name . " ";
+    $sql .= "SET last_login_at_usr = CURRENT_TIMESTAMP ";
+    $sql .= "WHERE id_usr = '{$safe_id}' ";
+    $sql .= "LIMIT 1";
+
+    $result = self::$database->query($sql);
+
+    if ($result) {
+      $this->last_login_at_usr = date('Y-m-d H:i:s');
+      return true;
+    }
+
+    return false;
+  }
+
+  public function last_active_display(): ?string
+  {
+    if (is_blank($this->last_login_at_usr)) {
+      return null;
+    }
+
+    return date('F Y', strtotime($this->last_login_at_usr));
   }
 }

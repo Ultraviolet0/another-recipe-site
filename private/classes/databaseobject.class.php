@@ -177,13 +177,6 @@ class DatabaseObject
   public function save()
   {
     $pk = static::$primary_key;
-
-    //if (isset($this->$pk)) {
-    //  return $this->update();
-    //} else {
-    //  return $this->create();
-    //}
-    // Above improved with ternary operator:
     return isset($this->$pk) ? $this->update() : $this->create();
   }
 

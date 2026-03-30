@@ -47,25 +47,14 @@ include(SHARED_PATH . '/public_header.php');
 
 <div class="wrapper">
   <div class="container">
-
-    <h2>Delete Recipe</h2>
-
+    <h1>Delete Recipe</h1>
     <p>Are you sure you want to delete this recipe?</p>
-
     <p><strong><?php echo h($recipe->title_rcp); ?></strong></p>
 
     <form action="<?php echo url_for('/recipes/delete.php?id=' . u($id)); ?>" method="post">
-
-      <button type="submit" name="confirm" value="yes" class="button button-danger">
-        Yes, Delete Recipe
-      </button>
-
-      <button type="submit" name="confirm" value="no" class="button button-secondary">
-        Cancel
-      </button>
-
+      <button type="submit" name="confirm" value="yes" class="button button-danger">Yes, Delete Recipe</button>
+      <button type="submit" name="confirm" value="no" class="button button-secondary">Cancel</button>
     </form>
-
   </div>
 </div>
 

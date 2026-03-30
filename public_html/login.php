@@ -15,6 +15,7 @@ if (is_post_request()) {
   $username = $_POST['username'] ?? '';
   $password = $_POST['password'] ?? '';
   $return_to = $_POST['return_to'] ?? $return_to;
+  $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 
   // Validations
   if (is_blank($username)) {
@@ -22,6 +23,9 @@ if (is_post_request()) {
   }
   if (is_blank($password)) {
     $errors[] = "Password cannot be blank.";
+  }
+  if (!verify_turnstile_token($turnstile_token, $_SERVER['REMOTE_ADDR'] ?? null)) {
+    $errors[] = "Captcha verification failed.";
   }
 
   // if there were no errors, try to login
@@ -31,6 +35,7 @@ if (is_post_request()) {
     if ($user != false && $user->verify_password($password)) {
       // Mark user as logged in
       $session->login($user);
+      $user->update_last_login();
       $session->message('Login successful.');
       if ($return_to && strpos($return_to, '/') === 0 && strpos($return_to, '//') !== 0) {
         redirect_to($return_to);
@@ -42,31 +47,24 @@ if (is_post_request()) {
         }
       }
     } else {
-      if (!$user) {
-        // username not found
-        $errors[] = "Username not found.";
-      } else {
-        // password does not match
-        $errors[] = "Password does not match.";
-      }
+      $errors[] = "Invalid username or password.";
     }
   }
 }
 
-?>
-
-<?php $page_title = 'Login'; ?>
-<?php include(SHARED_PATH . '/public_header.php'); ?>
+$page_title = 'Login';
+include(SHARED_PATH . '/public_header.php'); ?>
 
 <div class="wrapper">
   <div class="container">
-    <h2>Login</h2>
+    <h1>Login</h1>
     <?php echo display_errors($errors); ?>
     <form action="<?php echo url_for('/login.php'); ?>" method="post">
       <label for="username">Username:</label><br>
       <input type="text" name="username" id="username" value="<?php echo h($username); ?>" required><br>
       <label for="password">Password:</label><br>
       <input type="password" name="password" id="password" value="" required><br>
+      <div class="cf-turnstile" data-sitekey="<?php echo h($_ENV['TURNSTILE_SITE_KEY'] ?? ''); ?>"></div>
       <button type="submit" class="button">Log in</button>
       <input type="hidden" name="return_to" value="<?php echo h($return_to); ?>">
     </form>

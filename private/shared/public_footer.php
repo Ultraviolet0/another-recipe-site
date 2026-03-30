@@ -17,7 +17,7 @@
           <?php if ($session->is_logged_in()) { ?>
             <li><a href="<?php echo url_for('/recipes/new.php'); ?>">Add a Recipe</a></li>
           <?php } ?>
-          <!-- <li><a href="<?php echo url_for('/about.php'); ?>"><span>About</span></a></li> -->
+          <li><a href="<?php echo url_for('/about.php'); ?>"><span>About</span></a></li>
         </ul>
       </nav>
 
@@ -25,7 +25,11 @@
         <h2 id="footer-account-heading" class="site-footer-heading">Account</h2>
         <ul class="site-footer-list">
           <?php if ($session->is_logged_in()) { ?>
-            <li><a href="<?php echo url_for('/logout.php'); ?>">Log Out</a></li>
+            <li><a href="<?php echo url_for('/dashboard'); ?>">Dashboard</a></li>
+            <li><a href="<?php echo url_for('/dashboard/recipes.php'); ?>">My Recipes</a></li>
+            <li><a href="<?php echo url_for('/profile.php?id=' . u($session->get_user_id())); ?>">View Profile</a></li>
+            <li><a href="<?php echo url_for('/dashboard/profile.php'); ?>">Edit Profile</a></li>
+            <li><a href="<?php echo url_for('/logout.php'); ?>">Logout</a></li>
           <?php } else { ?>
             <li><a href="<?php echo url_for('/login.php'); ?>">Log In</a></li>
             <li><a href="<?php echo url_for('/signup.php'); ?>">Create Account</a></li>
