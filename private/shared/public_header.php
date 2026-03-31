@@ -6,6 +6,7 @@
             echo h($page_title) . ' | Another Recipe Site';
           } ?></title>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="anotherrecipe.site is a recipe sharing site where you can discover, save, and share delicious recipes with a community of home cooks.">
   <meta name="robots" content="index, follow">
   <link rel="preload" href="<?php echo url_for('/fonts/pt-sans-regular.woff2'); ?>" as="font" type="font/woff2" crossorigin>
