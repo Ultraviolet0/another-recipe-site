@@ -178,3 +178,72 @@ function format_quantity_kitchen($value): string
   // Fallback to clean decimal
   return format_number_clean($num);
 }
+
+function is_ajax_request()
+{
+  return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+}
+
+function render_json($data, $status_code = 200)
+{
+  http_response_code($status_code);
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode($data);
+  exit;
+}
+
+function extract_youtube_video_id($url)
+{
+  $url = trim((string)$url);
+  if ($url === '') {
+    return null;
+  }
+
+  if (!filter_var($url, FILTER_VALIDATE_URL)) {
+    return null;
+  }
+
+  $parts = parse_url($url);
+  if ($parts === false) {
+    return null;
+  }
+
+  $host = strtolower($parts['host'] ?? '');
+  $path = $parts['path'] ?? '';
+  $query = $parts['query'] ?? '';
+
+  if (str_starts_with($host, 'www.')) {
+    $host = substr($host, 4);
+  }
+
+  $video_id = null;
+
+  if ($host === 'youtube.com') {
+    if ($path !== '/watch') {
+      return null;
+    }
+
+    parse_str($query, $params);
+    $video_id = $params['v'] ?? null;
+  } elseif ($host === 'youtu.be') {
+    $video_id = ltrim($path, '/');
+  } else {
+    return null;
+  }
+
+  if (!is_string($video_id) || !preg_match('/^[A-Za-z0-9_-]{11}$/', $video_id)) {
+    return null;
+  }
+
+  return $video_id;
+}
+
+function youtube_embed_url($video_id)
+{
+  if (!is_string($video_id) || !preg_match('/^[A-Za-z0-9_-]{11}$/', $video_id)) {
+    return null;
+  }
+
+  return 'https://www.youtube.com/embed/' . $video_id;
+}

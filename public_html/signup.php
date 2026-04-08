@@ -12,7 +12,6 @@ if (is_post_request()) {
   $args = $_POST['user'] ?? [];
   $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 
-
   // defend against user injected roles
   unset($args['roles']);
 
@@ -46,10 +45,9 @@ if (is_post_request()) {
   $user = new User;
 }
 
-?>
-
-<?php $page_title = 'Signup'; ?>
-<?php include(SHARED_PATH . '/public_header.php'); ?>
+$page_title = 'Signup';
+$use_turnstile = true;
+include(SHARED_PATH . '/public_header.php'); ?>
 
 <div class="wrapper">
   <div class="container">

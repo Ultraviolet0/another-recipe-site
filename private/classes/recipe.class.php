@@ -88,6 +88,16 @@ class Recipe extends DatabaseObject
       $this->errors[] = "User is required.";
     }
 
+    if (!is_blank($this->youtube_url_rcp)) {
+      $video_id = extract_youtube_video_id($this->youtube_url_rcp);
+
+      if ($video_id === null) {
+        $this->errors[] = "YouTube link must be a valid YouTube watch URL or youtu.be short link.";
+      } else {
+        $this->youtube_url_rcp = 'https://www.youtube.com/watch?v=' . $video_id;
+      }
+    }
+
     return $this->errors;
   }
 

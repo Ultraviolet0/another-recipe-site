@@ -99,6 +99,12 @@ function process_recipe_upload($file, $upload_root_public)
   [$src_w, $src_h] = $info;
   $image_type = $info[2];
 
+  $max_dimension = 5000;
+
+  if($src_w > $max_dimension || $src_h > $max_dimension) {
+    throw new Exception("Each image must be no larger than {$max_dimension}px wide or {$max_dimension}px tall.");
+  }
+
   if (!in_array($image_type, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true)) {
     throw new Exception("Unsupported image type. Use JPG, PNG, or WebP.");
   }

@@ -182,6 +182,30 @@ function initAutoRating() {
   const radios = ratingForm.querySelectorAll('input[type="radio"][name="rating"]');
   const clearButton = ratingForm.querySelector('.rating-clear-button');
 
+  function submitRating(formData) {
+    return fetch(ratingForm.action, {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        showToast(data.message);
+
+        if (data.ok) {
+          updateRatingSummary(data);
+          updateClearButton(ratingForm, data.user_rating);
+          updateSelectedRating(ratingForm, data.user_rating);
+        }
+      })
+      .catch(() => {
+        showToast('Something went wrong.');
+      });
+  }
+
   radios.forEach((radio) => {
     radio.addEventListener('change', () => {
       if (!isLoggedIn) {
@@ -192,14 +216,9 @@ function initAutoRating() {
       }
 
       const formData = new FormData(ratingForm);
+      formData.delete('clear_rating');
 
-      fetch(ratingForm.action, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin'
-      }).then(() => {
-        window.location.reload();
-      });
+      submitRating(formData);
     });
   });
 
@@ -212,18 +231,54 @@ function initAutoRating() {
       event.preventDefault();
 
       const formData = new FormData(ratingForm);
-      formData.delete('save_rating');
+      formData.delete('rating');
       formData.set('clear_rating', '1');
 
-      fetch(ratingForm.action, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin'
-      }).then(() => {
-        window.location.reload();
-      });
+      submitRating(formData);
     });
   }
+}
+
+function updateSelectedRating(ratingForm, userRating) {
+  const radios = ratingForm.querySelectorAll('input[type="radio"][name="rating"]');
+
+  radios.forEach((radio) => {
+    radio.checked = Number(radio.value) === Number(userRating);
+  });
+}
+
+function updateRatingSummary(data) {
+  const summary = document.querySelector('[data-rating-summary]');
+  if (!summary) return;
+
+  const text = summary.querySelector('[data-rating-text]');
+  let count = summary.querySelector('[data-rating-count]');
+
+  if (data.rating_avg === null) {
+    if (text) text.textContent = 'Not rated yet';
+    if (count) count.remove();
+    return;
+  }
+
+  if (text) {
+    text.textContent = `${Number(data.rating_avg).toFixed(1)}/5`;
+  }
+
+  if (!count) {
+    count = document.createElement('span');
+    count.setAttribute('data-rating-count', '');
+    summary.appendChild(document.createTextNode(' '));
+    summary.appendChild(count);
+  }
+
+  count.textContent = `(${data.rating_count})`;
+}
+
+function updateClearButton(ratingForm, userRating) {
+  const clearButton = ratingForm.querySelector('.rating-clear-button');
+  if (!clearButton) return;
+
+  clearButton.hidden = !userRating;
 }
 
 function initRecipeImageGallery() {
@@ -466,10 +521,33 @@ function initRecipeFormEnhancements() {
   }
 }
 
-function initFlashToast() {
-  const flashToast = document.querySelector('.flash-toast');
-  if (!flashToast) return;
+function showToast(message) {
+  if (!message) return;
 
+  const existingToast = document.querySelector('.flash-toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'flash-toast';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+
+  toast.innerHTML = `
+    <div class="flash-toast-inner">
+      <p></p>
+      <button type="button" class="flash-toast-close" aria-label="Dismiss message">&times;</button>
+    </div>
+  `;
+
+  toast.querySelector('p').textContent = message;
+  document.body.appendChild(toast);
+
+  wireToast(toast);
+}
+
+function wireToast(flashToast) {
   const closeButton = flashToast.querySelector('.flash-toast-close');
   let hideTimeout = null;
 
@@ -494,6 +572,12 @@ function initFlashToast() {
   flashToast.addEventListener('mouseleave', () => {
     hideTimeout = window.setTimeout(hideFlashToast, 2500);
   });
+}
+
+function initFlashToast() {
+  const flashToast = document.querySelector('.flash-toast');
+  if (!flashToast) return;
+  wireToast(flashToast);
 }
 
 function initHeaderUserMenu() {

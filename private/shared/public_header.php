@@ -14,7 +14,9 @@
   <link rel="icon" href="<?php echo url_for('/favicon.ico'); ?>" sizes="any">
   <script src="<?php echo url_for('/js/scripts.js?v=' . filemtime(PUBLIC_PATH . '/js/scripts.js')); ?>" defer></script>
   <script src="https://kit.fontawesome.com/63a25c8438.js" crossorigin="anonymous"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <?php if (!empty($use_turnstile)) { ?>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <?php } ?>
 </head>
 
 <body>

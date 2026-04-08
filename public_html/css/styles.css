@@ -104,6 +104,10 @@ header ul {
   border: 0;
 }
 
+.button[hidden] {
+  display: none;
+}
+
 .wrapper {
   margin: 0 auto;
   max-width: 1216px;
@@ -162,14 +166,8 @@ body.loading .page-loading {
 
 /***** Javascript *****/
 
-body.js .apply-filters-button {
-  display: none;
-}
-
-body.js .rating-save-button {
-  display: none;
-}
-
+body.js .apply-filters-button,
+body.js .rating-save-button,
 body.js .form-help span {
   display: none;
 }
@@ -1500,15 +1498,11 @@ main form input[type='file']::file-selector-button:hover {
   background: var(--color-section-bg);
   border: 1px solid var(--color-soft-border);
   border-radius: var(--radius-card);
-  display: grid;
-  gap: 0.75rem;
   padding: 1rem;
 }
 
-.rating-summary {
-  align-items: center;
-  display: flex;
-  gap: 0.5rem;
+.rating-form form {
+  margin: 0;
 }
 
 .rating-form fieldset {
@@ -1566,6 +1560,32 @@ main form input[type='file']::file-selector-button:hover {
   vertical-align: middle;
 }
 
+.recipe-video {
+  background: var(--color-section-bg);
+  border: 1px solid var(--color-soft-border);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+}
+
+.recipe-video h2 {
+  margin-bottom: .5rem;
+}
+
+.recipe-video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.recipe-video-embed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .recipe-body {
   align-items: start;
   display: grid;
@@ -1579,7 +1599,10 @@ main form input[type='file']::file-selector-button:hover {
   border: 1px solid var(--color-soft-border);
   border-radius: var(--radius-card);
   box-shadow: 0 3px 10px var(--color-card-shadow);
+  overflow: hidden;
+  overflow-wrap: anywhere;
   padding: 1rem;
+  text-overflow: ellipsis;
 }
 
 .recipe-ingredients h2,

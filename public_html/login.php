@@ -53,6 +53,7 @@ if (is_post_request()) {
 }
 
 $page_title = 'Login';
+$use_turnstile = true;
 include(SHARED_PATH . '/public_header.php'); ?>
 
 <div class="wrapper">

@@ -19,7 +19,7 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
   <label for="title">Title*</label><br>
   <input type="text" id="title" name="recipe[title_rcp]" maxlength="255" value="<?php echo h($draft['recipe']['title_rcp'] ?? ''); ?>" required><br>
 
-  <label for="description">Description (500 characters max)</label><br>
+  <label for="description">Description (500 char max)</label><br>
   <textarea id="description" name="recipe[description_rcp]" maxlength="500" rows="3"><?php echo h($draft['recipe']['description_rcp'] ?? ''); ?></textarea><br>
 
   <label for="servings">Servings</label><br>
@@ -43,6 +43,7 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 
   <label for="youtube-url">YouTube URL</label><br>
   <input type="url" id="youtube-url" name="recipe[youtube_url_rcp]" value="<?php echo h($draft['recipe']['youtube_url_rcp'] ?? ''); ?>">
+  <p class="form-help">Optional. Enter a valid YouTube watch link or youtu.be short link.</p>
 </fieldset>
 
 <fieldset>
@@ -112,7 +113,7 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 
       <div>
         <label for="name-ingredient-<?php echo h($i); ?>">Name</label>
-        <input type="text" id="name-ingredient-<?php echo h($i); ?>" name="ingredients[<?php echo $i; ?>][name_ing]" value="<?php echo h($ing['name_ing'] ?? ''); ?>">
+        <input type="text" id="name-ingredient-<?php echo h($i); ?>" name="ingredients[<?php echo $i; ?>][name_ing]" maxlength="255" value="<?php echo h($ing['name_ing'] ?? ''); ?>">
       </div>
     </div>
   <?php } ?>
@@ -124,8 +125,8 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 
   <?php foreach (($draft['directions'] ?? []) as $i => $dir) { ?>
     <div class="direction-row">
-      <label for="direction-step-<?php echo h($i); ?>">Step <?php echo $i + 1; ?></label><br>
-      <textarea id="direction-step-<?php echo h($i); ?>" name="directions[<?php echo $i; ?>][instruction_dir]" rows="3" cols="60"><?php echo h($dir['instruction_dir'] ?? ''); ?></textarea>
+      <label for="direction-step-<?php echo h($i); ?>">Step <?php echo $i + 1; ?> (500 char max)</label><br>
+      <textarea id="direction-step-<?php echo h($i); ?>" name="directions[<?php echo $i; ?>][instruction_dir]" rows="3" cols="60" maxlength="500"><?php echo h($dir['instruction_dir'] ?? ''); ?></textarea>
     </div>
   <?php } ?>
   <button type="submit" class="button button-secondary" name="action" id="add-step-button" value="add_direction" formnovalidate>Add Step</button>
@@ -136,5 +137,5 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 
   <label for="photos">Upload Photos</label><br>
   <input id="photos" type="file" name="photos[]" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-  <p class="form-help">You may upload up to 6 images (JPG/PNG/WebP). <span>Add photos after finishing ingredients and steps (file selections reset when the page reloads).</span></p>
+  <p class="form-help">You may upload up to 6 images (JPG/PNG/WebP). Each image must be 5 MB or less, with a maximum size of 5000px by 5000px.<span> Add photos after finishing ingredients and steps (file selections reset when the page reloads).</span></p>
 </fieldset>
