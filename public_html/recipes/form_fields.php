@@ -7,10 +7,24 @@ $measurements = Measurement::find_all();
 $meal_types = MealType::find_all();
 $cuisines = Cuisine::find_all();
 $dietary_styles = DietaryStyle::find_all();
+$badges = Badge::find_all();
 
 $selected_meal_types = $draft['meal_types'] ?? [];
 $selected_cuisines = $draft['cuisines'] ?? [];
 $selected_dietary_styles = $draft['dietary_styles'] ?? [];
+
+$is_admin_recipe_editor = $session->is_admin_logged_in();
+$current_badge_id = $draft['recipe']['id_bdg_rcp'] ?? '';
+$current_badge_name = null;
+
+if (!is_blank($current_badge_id)) {
+  foreach ($badges as $badge) {
+    if ((string)$badge->id_bdg === (string)$current_badge_id) {
+      $current_badge_name = $badge->name_bdg;
+      break;
+    }
+  }
+}
 ?>
 
 <fieldset>
@@ -40,6 +54,21 @@ $selected_dietary_styles = $draft['dietary_styles'] ?? [];
 
   <label for="cook-time">Cook Time (min)*</label><br>
   <input type="number" min="0" id="cook-time" name="recipe[cook_time_minutes_rcp]" value="<?php echo h($draft['recipe']['cook_time_minutes_rcp'] ?? 0); ?>" required><br>
+
+  <?php if ($is_admin_recipe_editor) { ?>
+    <label for="badge">Badge</label><br>
+    <select id="badge" name="recipe[id_bdg_rcp]">
+      <option value=""></option>
+      <?php foreach ($badges as $badge) { ?>
+        <option value="<?php echo h($badge->id_bdg); ?>" <?php echo ((string)$current_badge_id === (string)$badge->id_bdg) ? 'selected' : ''; ?>>
+          <?php echo h(display_title_case($badge->name_bdg)); ?>
+        </option>
+      <?php } ?>
+    </select><br>
+  <?php } elseif ($current_badge_name !== null) { ?>
+    <p><strong>Badge:</strong> <?php echo h(display_title_case($current_badge_name)); ?></p>
+    <p class="form-help">This badge was assigned by an administrator and cannot be changed here.</p>
+  <?php } ?>
 
   <label for="youtube-url">YouTube URL</label><br>
   <input type="url" id="youtube-url" name="recipe[youtube_url_rcp]" value="<?php echo h($draft['recipe']['youtube_url_rcp'] ?? ''); ?>">

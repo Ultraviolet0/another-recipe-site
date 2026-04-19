@@ -54,6 +54,12 @@ class DatabaseObject
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 
+  static public function count_all()
+  {
+    $sql = "SELECT COUNT(*) AS count FROM " . static::$table_name;
+    return static::$database->query($sql)->fetch_row()[0] ?? 0;
+  }
+
   static protected function instantiate($record)
   {
     $object = new static;

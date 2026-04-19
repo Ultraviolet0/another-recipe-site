@@ -43,7 +43,7 @@ if (is_post_request()) {
         if ($session->is_admin_logged_in()) {
           redirect_to(url_for('/admin'));
         } else {
-          redirect_to(url_for('/'));
+          redirect_to(url_for('/dashboard'));
         }
       }
     } else {

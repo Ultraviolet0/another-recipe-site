@@ -18,19 +18,11 @@ $unlisted_recipes = 0;
 $private_recipes = 0;
 $recent_recipes = [];
 
-if (method_exists('Recipe', 'count_by_user_id')) {
-  $total_recipes = Recipe::count_by_user_id($current_user_id);
-}
-
-if (method_exists('Recipe', 'count_by_user_id_and_privacy')) {
-  $public_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'public');
-  $unlisted_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'unlisted');
-  $private_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'private');
-}
-
-if (method_exists('Recipe', 'find_by_user_id')) {
-  $recent_recipes = Recipe::find_by_user_id($current_user_id, 5);
-}
+$total_recipes = Recipe::count_by_user_id($current_user_id);
+$public_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'public');
+$unlisted_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'unlisted');
+$private_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'private');
+$recent_recipes = Recipe::find_by_user_id($current_user_id, 5);
 
 $page_title = 'Dashboard';
 include(SHARED_PATH . '/public_header.php');
@@ -90,6 +82,13 @@ include(SHARED_PATH . '/public_header.php');
           <h4>View Public Profile</h4>
           <p>See how your profile appears to other users.</p>
         </a>
+
+        <?php if ($session->is_admin_logged_in()) { ?>
+          <a class="dashboard-action-card" href="<?php echo url_for('/admin'); ?>">
+            <h4>Admin Dashboard</h4>
+            <p>View, edit, and manage administrative features.</p>
+          </a>
+        <?php } ?>
       </div>
     </section>
 

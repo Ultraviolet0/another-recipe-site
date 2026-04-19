@@ -3,7 +3,8 @@ require_once('../../private/initialize.php');
 
 $id = $_GET['id'] ?? '';
 if (!ctype_digit($id)) {
-  redirect_to(url_for('/recipes'));
+  // redirect_to(url_for('/recipes'));
+  error_404();
 }
 
 $recipe = Recipe::find_with_creator_by_id($id);
@@ -129,7 +130,7 @@ include(SHARED_PATH . '/public_header.php');
         <?php } ?>
 
         <?php if ($recipe->creator_username()) { ?>
-          <span><strong>By:</strong> <a href="<?php echo $recipe->creator_profile_url(); ?>"><?php echo h($recipe->creator_username()); ?></a></span>
+          <span><strong>By:</strong> <a href="<?php echo $recipe->creator_profile_url(); ?>" class="recipe-username"><?php echo h($recipe->creator_username()); ?></a></span>
         <?php } ?>
 
         <span data-rating-summary><strong>Rating:</strong>
@@ -169,7 +170,7 @@ include(SHARED_PATH . '/public_header.php');
           <a class="button button-danger" href="<?php echo url_for('/recipes/delete.php?id=' . u($recipe->id_rcp)); ?>">Delete Recipe</a>
         <?php } ?>
 
-        <button type="button" class="button" disabled title="Coming soon">Print / PDF</button>
+        <a class="button button-secondary" href="<?php echo url_for('/recipes/print.php?id=' . u($recipe->id_rcp)); ?>" target="_blank" rel="noopener noreferrer">Print / PDF</a>
       </div>
 
       <?php if (!empty($images)) { ?>

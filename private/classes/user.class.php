@@ -162,7 +162,35 @@ class User extends DatabaseObject
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 
+  static public function count_by_status($status)
+  {
+    $status = static::$database->escape_string($status);
+    $sql = "SELECT COUNT(*) FROM " . static::$table_name;
+    $sql .= " WHERE status_usr='" . $status . "'";
+    return static::$database->query($sql)->fetch_row()[0] ?? 0;
+  }
+
   // Roles Functions
+
+  public static function all_role_names()
+  {
+    $sql = "SELECT name_rol ";
+    $sql .= "FROM role_rol ";
+    $sql .= "ORDER BY FIELD(name_rol, 'member', 'admin', 'super admin')";
+
+    $result = static::$database->query($sql);
+    if (!$result) {
+      return [];
+    }
+
+    $roles = [];
+    while ($row = $result->fetch_assoc()) {
+      $roles[] = $row['name_rol'];
+    }
+    $result->free();
+
+    return $roles;
+  }
 
   public function get_role_names()
   {
@@ -200,6 +228,33 @@ class User extends DatabaseObject
     return in_array($role_name, $roles, true);
   }
 
+  public static function has_role_by_user_id($user_id, $role_name)
+  {
+    $user_id = (int)$user_id;
+    if ($user_id < 1) {
+      return false;
+    }
+
+    $role_name = static::$database->escape_string(trim($role_name));
+
+    $sql = "SELECT 1 ";
+    $sql .= "FROM user_role_usrrol ur ";
+    $sql .= "INNER JOIN role_rol r ON ur.id_rol_usrrol = r.id_rol ";
+    $sql .= "WHERE ur.id_usr_usrrol = {$user_id} ";
+    $sql .= "AND r.name_rol = '{$role_name}' ";
+    $sql .= "LIMIT 1";
+
+    $result = static::$database->query($sql);
+    if (!$result) {
+      return false;
+    }
+
+    $has_role = $result->num_rows > 0;
+    $result->free();
+
+    return $has_role;
+  }
+
   public function get_top_role()
   {
     if ($this->has_role('super admin')) {
@@ -209,6 +264,12 @@ class User extends DatabaseObject
     } else {
       return 'Member';
     }
+  }
+
+  public static function is_member_only($user_id)
+  {
+    return !static::has_role_by_user_id($user_id, 'admin')
+      && !static::has_role_by_user_id($user_id, 'super admin');
   }
 
   public function add_role_by_name($role_name)
@@ -354,5 +415,197 @@ class User extends DatabaseObject
     }
 
     return date('F Y', strtotime($this->last_login_at_usr));
+  }
+
+  public static function find_recent_signups($limit = 8)
+  {
+    $limit = (int)$limit;
+    if ($limit < 1) {
+      $limit = 8;
+    }
+
+    $sql = "SELECT * FROM " . static::$table_name . " ";
+    $sql .= "ORDER BY created_at_usr DESC ";
+    $sql .= "LIMIT " . $limit;
+
+    return static::find_by_sql($sql);
+  }
+
+  public static function admin_summary_counts()
+  {
+    $counts = [
+      'total_users' => 0,
+      'pending_users' => 0,
+      'active_users' => 0,
+      'disabled_users' => 0,
+      'member_users' => 0,
+      'admin_users' => 0,
+      'super_admin_users' => 0,
+      'total_recipes' => 0
+    ];
+
+    $sql = "SELECT ";
+    $sql .= "COUNT(*) AS total_users, ";
+    $sql .= "SUM(CASE WHEN status_usr = 'pending' THEN 1 ELSE 0 END) AS pending_users, ";
+    $sql .= "SUM(CASE WHEN status_usr = 'active' THEN 1 ELSE 0 END) AS active_users, ";
+    $sql .= "SUM(CASE WHEN status_usr = 'disabled' THEN 1 ELSE 0 END) AS disabled_users ";
+    $sql .= "FROM " . static::$table_name;
+
+    $result = static::$database->query($sql);
+    if ($result) {
+      $row = $result->fetch_assoc();
+      $result->free();
+
+      $counts['total_users'] = (int)($row['total_users'] ?? 0);
+      $counts['pending_users'] = (int)($row['pending_users'] ?? 0);
+      $counts['active_users'] = (int)($row['active_users'] ?? 0);
+      $counts['disabled_users'] = (int)($row['disabled_users'] ?? 0);
+    }
+
+    $sql = "SELECT r.name_rol, COUNT(*) AS role_total ";
+    $sql .= "FROM user_role_usrrol ur ";
+    $sql .= "INNER JOIN role_rol r ON ur.id_rol_usrrol = r.id_rol ";
+    $sql .= "GROUP BY r.name_rol";
+
+    $result = static::$database->query($sql);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        if ($row['name_rol'] === 'member') {
+          $counts['member_users'] = (int)$row['role_total'];
+        } elseif ($row['name_rol'] === 'admin') {
+          $counts['admin_users'] = (int)$row['role_total'];
+        } elseif ($row['name_rol'] === 'super admin') {
+          $counts['super_admin_users'] = (int)$row['role_total'];
+        }
+      }
+      $result->free();
+    }
+
+    $sql = "SELECT COUNT(*) AS total_recipes FROM recipe_rcp";
+    $result = static::$database->query($sql);
+    if ($result) {
+      $row = $result->fetch_assoc();
+      $result->free();
+
+      $counts['total_recipes'] = (int)($row['total_recipes'] ?? 0);
+    }
+
+    return $counts;
+  }
+
+  public static function admin_find_all($filters = [])
+  {
+    $search = trim($filters['user_search'] ?? '');
+    $status = trim($filters['status'] ?? '');
+    $role = trim($filters['role'] ?? '');
+
+    $where = [];
+
+    if ($search !== '') {
+      $search_esc = static::$database->escape_string($search);
+      $like = "'%" . $search_esc . "%'";
+
+      $where[] = "("
+        . "u.username_usr LIKE {$like} "
+        . "OR u.display_name_usr LIKE {$like} "
+        . "OR u.email_usr LIKE {$like}"
+        . ")";
+    }
+
+    if ($status !== '') {
+      $status_esc = static::$database->escape_string($status);
+      $where[] = "u.status_usr = '{$status_esc}'";
+    }
+
+    if ($role !== '') {
+      $role_esc = static::$database->escape_string($role);
+      $where[] = "EXISTS ("
+        . "SELECT 1 "
+        . "FROM user_role_usrrol ur2 "
+        . "INNER JOIN role_rol r2 ON ur2.id_rol_usrrol = r2.id_rol "
+        . "WHERE ur2.id_usr_usrrol = u.id_usr "
+        . "AND r2.name_rol = '{$role_esc}'"
+        . ")";
+    }
+
+    $sql = "SELECT ";
+    $sql .= "u.id_usr, u.username_usr, u.display_name_usr, u.email_usr, u.status_usr, ";
+    $sql .= "u.created_at_usr, u.last_login_at_usr, ";
+    $sql .= "COUNT(DISTINCT rcp.id_rcp) AS recipe_count, ";
+    $sql .= "GROUP_CONCAT(DISTINCT rol.name_rol ORDER BY ";
+    $sql .= "FIELD(rol.name_rol, 'super admin', 'admin', 'member') SEPARATOR ', ') AS role_names ";
+    $sql .= "FROM user_usr u ";
+    $sql .= "LEFT JOIN recipe_rcp rcp ON rcp.id_usr_rcp = u.id_usr ";
+    $sql .= "LEFT JOIN user_role_usrrol ur ON ur.id_usr_usrrol = u.id_usr ";
+    $sql .= "LEFT JOIN role_rol rol ON rol.id_rol = ur.id_rol_usrrol ";
+
+    if (!empty($where)) {
+      $sql .= "WHERE " . implode(' AND ', $where) . " ";
+    }
+
+    $sql .= "GROUP BY ";
+    $sql .= "u.id_usr, u.username_usr, u.display_name_usr, u.email_usr, u.status_usr, u.created_at_usr, u.last_login_at_usr ";
+    $sql .= "ORDER BY u.created_at_usr DESC, u.username_usr ASC";
+
+    $result = static::$database->query($sql);
+    if (!$result) {
+      exit('Database query failed.');
+    }
+
+    $rows = [];
+    while ($row = $result->fetch_assoc()) {
+      $rows[] = $row;
+    }
+    $result->free();
+
+    return $rows;
+  }
+
+  public static function count_recipes_by_user_id($user_id)
+  {
+    $user_id = (int)$user_id;
+    if ($user_id < 1) {
+      return 0;
+    }
+
+    $sql = "SELECT COUNT(*) ";
+    $sql .= "FROM recipe_rcp ";
+    $sql .= "WHERE id_usr_rcp = '{$user_id}'";
+
+    return static::$database->query($sql)->fetch_row()[0] ?? 0;
+  }
+
+  public function delete_with_recipes()
+  {
+    if (!isset($this->id_usr)) {
+      return false;
+    }
+
+    $safe_user_id = self::$database->escape_string($this->id_usr);
+
+    self::$database->begin_transaction();
+
+    try {
+      $sql = "DELETE FROM recipe_rcp ";
+      $sql .= "WHERE id_usr_rcp = '{$safe_user_id}'";
+
+      if (!self::$database->query($sql)) {
+        throw new Exception('Could not delete user recipes.');
+      }
+
+      $sql = "DELETE FROM " . static::$table_name . " ";
+      $sql .= "WHERE id_usr = '{$safe_user_id}' ";
+      $sql .= "LIMIT 1";
+
+      if (!self::$database->query($sql)) {
+        throw new Exception('Could not delete user.');
+      }
+
+      self::$database->commit();
+      return true;
+    } catch (Throwable $e) {
+      self::$database->rollback();
+      return false;
+    }
   }
 }

@@ -64,10 +64,7 @@ include(SHARED_PATH . '/public_header.php');
         <div class="dashboard-profile-preview">
           <div class="profile-avatar-wrap">
             <?php if ($profile_image_url) { ?>
-              <img
-                class="profile-avatar"
-                src="<?php echo h($profile_image_url); ?>"
-                alt="<?php echo h($user->username_usr); ?> profile picture">
+              <img class="profile-avatar" src="<?php echo h($profile_image_url); ?>" alt="<?php echo h($user->username_usr); ?> profile picture.">
             <?php } else { ?>
               <div class="profile-avatar profile-avatar-placeholder" aria-hidden="true">
                 <?php echo h(strtoupper(substr($user->username_usr, 0, 1))); ?>
@@ -89,9 +86,7 @@ include(SHARED_PATH . '/public_header.php');
             <?php if (!is_blank($user->bio_usr)) { ?>
               <p class="dashboard-profile-preview-bio"><?php echo h($user->bio_usr); ?></p>
             <?php } else { ?>
-              <p class="dashboard-profile-preview-bio dashboard-profile-preview-empty">
-                No bio added yet.
-              </p>
+              <p class="dashboard-profile-preview-bio dashboard-profile-preview-empty">No bio added yet.</p>
             <?php } ?>
           </div>
         </div>

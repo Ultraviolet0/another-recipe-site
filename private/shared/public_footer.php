@@ -1,6 +1,6 @@
 </main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrapper">
     <div class="site-footer-grid">
 
@@ -56,4 +56,5 @@
 
 </html>
 
-<?php db_disconnect($database); ?>
+<?php global $database;
+db_disconnect($database); ?>

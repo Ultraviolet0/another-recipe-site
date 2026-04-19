@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="<?php echo url_for('/css/styles.css?v=' . filemtime(PUBLIC_PATH . '/css/styles.css')); ?>">
   <link rel="icon" href="<?php echo url_for('/favicon.ico'); ?>" sizes="any">
   <script src="<?php echo url_for('/js/scripts.js?v=' . filemtime(PUBLIC_PATH . '/js/scripts.js')); ?>" defer></script>
-  <script src="https://kit.fontawesome.com/63a25c8438.js" crossorigin="anonymous"></script>
+  <!-- <script src="https://kit.fontawesome.com/63a25c8438.js" crossorigin="anonymous"></script> -->
   <?php if (!empty($use_turnstile)) { ?>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <?php } ?>
@@ -78,18 +78,18 @@
       <div id="site-header-panel">
         <nav role="navigation">
           <ul>
-            <li><a href="<?php echo url_for('/recipes'); ?>"><span><i class="fa-solid fa-kitchen-set"></i> Recipes</span></a></li>
+            <li><a href="<?php echo url_for('/recipes'); ?>"><span>Recipes</span></a></li>
             <?php if ($session->is_logged_in()) { ?>
-              <li><a href="<?php echo url_for('/recipes/new.php'); ?>"><span><i class="fa-solid fa-circle-plus"></i> Add Recipe</span></a></li>
+              <li><a href="<?php echo url_for('/recipes/new.php'); ?>"><span>Add Recipe</span></a></li>
             <?php } ?>
+            <li><a href="<?php echo url_for('/about.php'); ?>"><span>About</span></a></li>
           </ul>
           <form role="search" action="<?php echo url_for('/recipes'); ?>" method="get" id="search-form">
             <label for="search" class="visually-hidden">Search recipes</label>
             <input type="search" name="search" id="search" placeholder="Find a recipe" value="<?php echo h($_GET['search'] ?? ''); ?>" required>
             <button type="submit"><span class="visually-hidden">Search</span></button>
           </form>
-          <ul>
-            <li><a href="<?php echo url_for('/about.php'); ?>"><span>About</span></a></li>
+          <ul id="header-info-section">
             <?php if ($session->is_logged_in()) { ?>
               <?php
               $header_user = User::find_by_id($session->get_user_id());
@@ -128,11 +128,14 @@
                   </div>
 
                   <nav class="header-user-menu-links" aria-label="Account menu">
-                    <a href="<?php echo url_for('/dashboard'); ?>"><span>Dashboard</span></a>
-                    <a href="<?php echo url_for('/dashboard/recipes.php'); ?>"><span>My Recipes</span></a>
-                    <a href="<?php echo url_for('/profile.php?id=' . u($session->get_user_id())); ?>"><span>View Profile</span></a>
-                    <a href="<?php echo url_for('/dashboard/profile.php'); ?>"><span>Edit Profile</span></a>
-                    <a href="<?php echo url_for('/logout.php'); ?>"><span>Logout</span></a>
+                    <?php if ($session->is_admin_logged_in()) { ?>
+                      <li><a href="<?php echo url_for('/admin'); ?>"><span>Admin</span></a></li>
+                    <?php } ?>
+                    <li><a href="<?php echo url_for('/dashboard'); ?>"><span>Dashboard</span></a></li>
+                    <li><a href="<?php echo url_for('/dashboard/recipes.php'); ?>"><span>My Recipes</span></a></li>
+                    <li><a href="<?php echo url_for('/profile.php?id=' . u($session->get_user_id())); ?>"><span>View Profile</span></a></li>
+                    <li><a href="<?php echo url_for('/dashboard/profile.php'); ?>"><span>Edit Profile</span></a></li>
+                    <li><a href="<?php echo url_for('/logout.php'); ?>"><span>Logout</span></a></li>
                   </nav>
                 </div>
               </div>

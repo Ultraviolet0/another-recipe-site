@@ -85,11 +85,11 @@ include(SHARED_PATH . '/public_header.php');
       <h2>Privacy and Terms</h2>
       <p>anotherrecipe.site uses account and recipe data to provide recipe-sharing features, user accounts, ratings, and site functionality. We aim to keep things straightforward and respectful of user trust.</p>
       <p>By using the site, users are expected to submit content they have the right to share and to use the platform responsibly.</p>
-      <p class="about-policy-links">
+      <!-- <p class="about-policy-links">
         <a href="<?php echo url_for('/privacy.php'); ?>">Privacy Policy</a>
         <span aria-hidden="true">•</span>
         <a href="<?php echo url_for('/terms.php'); ?>">Terms of Service</a>
-      </p>
+      </p> -->
     </section>
 
     <section class="about-section about-creator">

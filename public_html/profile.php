@@ -76,10 +76,7 @@ include(SHARED_PATH . '/public_header.php');
           <?php } ?>
 
           <?php if (!is_blank($user->location_usr ?? null)) { ?>
-            <span>
-              <strong>Location:</strong>
-              <?php echo h($user->location_usr); ?>
-            </span>
+            <span><strong>Location:</strong> <span class="profile-location"><?php echo h($user->location_usr); ?></span></span>
           <?php } ?>
         </div>
 

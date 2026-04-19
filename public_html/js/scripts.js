@@ -639,6 +639,243 @@ function initHeaderUserMenu() {
   });
 }
 
+function initResponsiveHeaderSearch() {
+  const searchForm = document.querySelector('#search-form');
+  const siteHeaderBar = document.querySelector('#site-header-bar');
+  const menuToggleLabel = document.querySelector('#nav-toggle-label');
+  const headerInfoSection = document.querySelector('#header-info-section');
+
+  if (!searchForm || !siteHeaderBar || !menuToggleLabel || !headerInfoSection) return;
+
+  let currentPlacement = '';
+
+  function placeSearchForm() {
+    const width = window.innerWidth;
+
+    if (width < 450) {
+      if (currentPlacement !== 'small') {
+        siteHeaderBar.parentElement.insertBefore(searchForm, siteHeaderBar);
+        currentPlacement = 'small';
+      }
+    } else if (width <= 850) {
+      if (currentPlacement !== 'medium') {
+        siteHeaderBar.insertBefore(searchForm, menuToggleLabel);
+        currentPlacement = 'medium';
+      }
+    } else {
+      if (currentPlacement !== 'large') {
+        headerInfoSection.parentElement.insertBefore(searchForm, headerInfoSection);
+        currentPlacement = 'large';
+      }
+    }
+  }
+
+  placeSearchForm();
+  window.addEventListener('resize', placeSearchForm);
+}
+
+function initAdminCategoryForms() {
+  const panels = document.querySelectorAll('[data-category-panel]');
+  if (!panels.length) return;
+
+  panels.forEach((panel) => {
+    const select = panel.querySelector('[data-category-select]');
+    const input = panel.querySelector('[data-category-input]');
+    const helper = panel.querySelector('[data-category-helper]');
+    const loadButton = panel.querySelector('[data-category-load]');
+    const editButton = panel.querySelector('[data-category-edit]');
+    const deleteButton = panel.querySelector('[data-category-delete]');
+
+    if (!select || !input || !editButton || !deleteButton) return;
+
+    function syncPanel() {
+      const selectedOption = select.options[select.selectedIndex];
+      const hasSelection = !!select.value;
+
+      if (hasSelection && selectedOption) {
+        input.value = selectedOption.dataset.name || selectedOption.textContent.trim();
+      }
+
+      editButton.disabled = !hasSelection;
+      deleteButton.disabled = !hasSelection;
+
+      if (helper) {
+        helper.textContent = hasSelection
+          ? 'Edit or delete the selected item, or change the text and click Create to add a new one.'
+          : 'Select an item to edit or delete, or enter a new name to create one.';
+      }
+
+      if (loadButton) {
+        loadButton.hidden = true;
+      }
+    }
+
+    syncPanel();
+    select.addEventListener('change', syncPanel);
+
+    deleteButton.addEventListener('click', (event) => {
+      if (!select.value) {
+        event.preventDefault();
+        return;
+      }
+
+      const selectedOption = select.options[select.selectedIndex];
+      const itemName = selectedOption.dataset.name || selectedOption.textContent.trim();
+      const usageCount = Number(selectedOption.dataset.usageCount || '0');
+
+      let message = `Are you sure you want to delete "${itemName}"?`;
+
+      if (usageCount > 0) {
+        message = `"${itemName}" is currently assigned to ${usageCount} recipe${usageCount === 1 ? '' : 's'}. Deleting it will remove it from those recipes. Do you want to continue?`;
+      }
+
+      if (!window.confirm(message)) {
+        event.preventDefault();
+      } else {
+        let confirmInput = panel.querySelector('input[name="confirm_delete"]');
+        if (!confirmInput) {
+          confirmInput = document.createElement('input');
+          confirmInput.type = 'hidden';
+          confirmInput.name = 'confirm_delete';
+          confirmInput.value = '1';
+          panel.querySelector('form').appendChild(confirmInput);
+        } else {
+          confirmInput.value = '1';
+        }
+      }
+    });
+  });
+}
+
+function initAdminUserFilters() {
+  const form = document.querySelector('#admin-user-filters');
+  if (!form) return;
+
+  let results = document.querySelector('#admin-user-results');
+  if (!results) return;
+
+  const statusSelect = form.querySelector('#admin-user-status');
+  const roleSelect = form.querySelector('#admin-user-role');
+  const searchInput = form.querySelector('#admin-user-search');
+  const resetButton = form.querySelector('.admin-user-reset-button');
+
+  let timeoutId = null;
+  let controller = null;
+
+  async function updateResults() {
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    const query = params.toString();
+    const url = query ? `${form.action}?${query}` : form.action;
+
+    if (controller) {
+      controller.abort();
+    }
+
+    controller = new AbortController();
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+        signal: controller.signal,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if (!response.ok) return;
+
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newResults = doc.querySelector('#admin-user-results');
+
+      if (!newResults || !results) return;
+
+      results.replaceWith(newResults);
+      results = newResults;
+
+      history.replaceState(null, '', url);
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Failed to update user results.', error);
+      }
+    }
+  }
+
+  if (statusSelect) {
+    statusSelect.addEventListener('change', updateResults);
+  }
+
+  if (roleSelect) {
+    roleSelect.addEventListener('change', updateResults);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(updateResults, 300);
+    });
+  }
+
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      form.reset();
+
+      if (searchInput) {
+        searchInput.value = '';
+      }
+
+      if (statusSelect) {
+        statusSelect.value = '';
+      }
+
+      if (roleSelect) {
+        roleSelect.value = '';
+      }
+
+      updateResults();
+    });
+  }
+}
+
+function initPrintRecipePage() {
+  const printPage = document.querySelector('.print-recipe-page');
+  if (!printPage) return;
+
+  const printButton = document.querySelector('.print-recipe-print-button');
+  const hideImagesToggle = document.getElementById('print-hide-images-toggle');
+  const hideImagesLabel = document.querySelector('label[for="print-hide-images-toggle"]');
+
+  function syncHideImagesState() {
+    if (!hideImagesToggle || !hideImagesLabel) return;
+
+    const imagesHidden = hideImagesToggle.checked;
+
+    document.body.classList.toggle('print-hide-images', imagesHidden);
+
+    if (imagesHidden) {
+      hideImagesLabel.textContent = 'Show Image';
+      hideImagesLabel.classList.remove('button-danger');
+    } else {
+      hideImagesLabel.textContent = 'Hide Image';
+      hideImagesLabel.classList.add('button-danger');
+    }
+  }
+
+  if (printButton) {
+    printButton.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
+  if (hideImagesToggle) {
+    hideImagesToggle.addEventListener('change', syncHideImagesState);
+    syncHideImagesState();
+  }
+}
+
 function init() {
   initRecipeFilters();
   initIngredientScaling();
@@ -648,6 +885,10 @@ function init() {
   initRecipeFormEnhancements();
   initFlashToast();
   initHeaderUserMenu();
+  initResponsiveHeaderSearch();
+  initAdminCategoryForms();
+  initAdminUserFilters();
+  initPrintRecipePage();
 }
 
 document.body.classList.add('js');

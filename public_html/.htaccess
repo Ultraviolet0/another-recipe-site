@@ -15,3 +15,5 @@
     Header set Cache-Control "public, max-age=31536000"
   </FilesMatch>
 </IfModule>
+
+ErrorDocument 404 /404.php

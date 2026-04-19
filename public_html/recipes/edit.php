@@ -46,6 +46,10 @@ if (is_post_request()) {
 
   $draft = recipe_merge_post_into_draft($draft, $_POST);
 
+  if (!$session->is_admin_logged_in()) {
+    $draft['recipe']['id_bdg_rcp'] = $recipe->id_bdg_rcp;
+  }
+
   if ($action === 'add_ingredient') {
     $draft = recipe_add_ingredient_row($draft);
     recipe_save_draft($draft);
@@ -62,6 +66,10 @@ if (is_post_request()) {
     $recipe_args = $draft['recipe'] ?? [];
     $recipe_args['id_rcp'] = $recipe->id_rcp;
     $recipe_args['id_usr_rcp'] = $recipe->id_usr_rcp; // preserve owner
+
+    if (!$session->is_admin_logged_in()) {
+      $recipe_args['id_bdg_rcp'] = $recipe->id_bdg_rcp;
+    }
 
     $recipe = new Recipe($recipe_args);
     $recipe->id_rcp = $id;
@@ -96,20 +104,20 @@ $page_title = 'Edit Recipe';
 include(SHARED_PATH . '/public_header.php');
 ?>
 
-  <div class="recipe-form">
-    <h1>Edit Recipe</h1>
-    <p class="form-help">Fields marked with a * are required.</p>
+<div class="recipe-form wrapper">
+  <h1>Edit Recipe</h1>
+  <p class="form-help">Fields marked with a * are required.</p>
 
-    <?php echo display_errors($recipe_for_errors->errors); ?>
+  <?php echo display_errors($recipe_for_errors->errors); ?>
 
-    <form action="<?php echo url_for('/recipes/edit.php?id=' . u($recipe->id_rcp)); ?>" method="post" enctype="multipart/form-data">
-      <?php include('form_fields.php'); ?>
+  <form action="<?php echo url_for('/recipes/edit.php?id=' . u($recipe->id_rcp)); ?>" method="post" enctype="multipart/form-data">
+    <?php include('form_fields.php'); ?>
 
-      <div>
-        <button type="submit" class="button" name="action" value="save_recipe">Save Changes</button>
-        <button type="submit" class="button button-secondary" name="action" value="discard_draft" formnovalidate>Discard Changes</button>
-      </div>
-    </form>
-  </div>
+    <div>
+      <button type="submit" class="button" name="action" value="save_recipe">Save Changes</button>
+      <button type="submit" class="button button-secondary" name="action" value="discard_draft" formnovalidate>Discard Changes</button>
+    </div>
+  </form>
+</div>
 
 <?php include(SHARED_PATH . '/public_footer.php'); ?>

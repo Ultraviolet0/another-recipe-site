@@ -88,6 +88,14 @@ class Recipe extends DatabaseObject
       $this->errors[] = "User is required.";
     }
 
+    if (!is_blank($this->id_bdg_rcp)) {
+      if (!ctype_digit((string)$this->id_bdg_rcp)) {
+        $this->errors[] = "Badge is invalid.";
+      } elseif (!$this->badge_exists($this->id_bdg_rcp)) {
+        $this->errors[] = "Selected badge was not found.";
+      }
+    }
+
     if (!is_blank($this->youtube_url_rcp)) {
       $video_id = extract_youtube_video_id($this->youtube_url_rcp);
 
@@ -1128,6 +1136,31 @@ class Recipe extends DatabaseObject
     return url_for('/uploads/recipes/1600/' . u($images[0]));
   }
 
+  protected function badge_exists($badge_id): bool
+  {
+    if (!ctype_digit((string)$badge_id)) {
+      return false;
+    }
+
+    $safe_id = self::$database->escape_string($badge_id);
+    $sql = "SELECT id_bdg FROM badge_bdg WHERE id_bdg = '{$safe_id}' LIMIT 1";
+
+    $result = self::$database->query($sql);
+    if (!$result) {
+      return false;
+    }
+
+    $exists = $result->num_rows > 0;
+    $result->free();
+
+    return $exists;
+  }
+
+  public function badge_id(): ?string
+  {
+    return is_blank($this->id_bdg_rcp) ? null : (string)$this->id_bdg_rcp;
+  }
+
   public function badge_name(): ?string
   {
     if (is_blank($this->id_bdg_rcp)) {
@@ -1311,6 +1344,14 @@ class Recipe extends DatabaseObject
     return (int)($row['recipe_count'] ?? 0);
   }
 
+  static public function count_by_privacy($privacy)
+  {
+    $privacy = static::$database->escape_string($privacy);
+    $sql = "SELECT COUNT(*) FROM " . static::$table_name;
+    $sql .= " WHERE privacy_rcp='" . $privacy . "'";
+    return static::$database->query($sql)->fetch_row()[0] ?? 0;
+  }
+
   public static function find_by_user_id($user_id, int $limit = 5): array
   {
     if (!ctype_digit((string)$user_id)) {
@@ -1350,5 +1391,34 @@ class Recipe extends DatabaseObject
     $sql .= "ORDER BY updated_at_rcp DESC";
 
     return static::find_by_sql($sql);
+  }
+
+  public static function find_recent_activity($limit = 8)
+  {
+    $limit = (int)$limit;
+    if ($limit < 1) {
+      $limit = 8;
+    }
+
+    $sql = "SELECT ";
+    $sql .= "r.id_rcp, r.title_rcp, r.privacy_rcp, r.created_at_rcp, r.updated_at_rcp, ";
+    $sql .= "u.id_usr AS creator_id_usr, u.username_usr AS creator_username_usr ";
+    $sql .= "FROM " . static::$table_name . " r ";
+    $sql .= "LEFT JOIN user_usr u ON r.id_usr_rcp = u.id_usr ";
+    $sql .= "ORDER BY GREATEST(r.created_at_rcp, r.updated_at_rcp) DESC ";
+    $sql .= "LIMIT " . $limit;
+
+    $result = static::$database->query($sql);
+    if (!$result) {
+      exit("Database query failed.");
+    }
+
+    $rows = [];
+    while ($row = $result->fetch_assoc()) {
+      $rows[] = $row;
+    }
+    $result->free();
+
+    return $rows;
   }
 }
