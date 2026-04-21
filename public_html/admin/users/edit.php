@@ -61,7 +61,7 @@ include(SHARED_PATH . '/public_header.php');
 
     <div>
       <button type="submit" class="button">Save Changes</button>
-      <a class="button button-secondary" href="<?php echo url_for('/admin/users/index.php'); ?>">Back to Users</a>
+      <a class="button button-secondary" href="<?php echo url_for('/admin/users'); ?>">Discard Changes</a>
     </div>
   </form>
 </div>

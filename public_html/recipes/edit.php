@@ -41,7 +41,7 @@ if (is_post_request()) {
     recipe_clear_draft();
     recipe_load_edit_draft($recipe);
     $session->message('Recipe changes discarded.');
-    redirect_to(url_for('/recipes/edit.php?id=' . u($recipe->id_rcp)));
+    redirect_to(url_for('/recipes/show.php?id=' . u($recipe->id_rcp)));
   }
 
   $draft = recipe_merge_post_into_draft($draft, $_POST);
