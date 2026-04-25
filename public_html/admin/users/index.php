@@ -69,26 +69,6 @@ include(SHARED_PATH . '/public_header.php');
         <h3>Disabled Users</h3>
         <p><?php echo h($summary['disabled_users']); ?></p>
       </div>
-
-      <div class="dashboard-stat-card">
-        <h3>Members</h3>
-        <p><?php echo h($summary['member_users']); ?></p>
-      </div>
-
-      <div class="dashboard-stat-card">
-        <h3>Admins</h3>
-        <p><?php echo h($summary['admin_users']); ?></p>
-      </div>
-
-      <div class="dashboard-stat-card">
-        <h3>Super Admins</h3>
-        <p><?php echo h($summary['super_admin_users']); ?></p>
-      </div>
-
-      <div class="dashboard-stat-card">
-        <h3>Total Recipes</h3>
-        <p><?php echo h($summary['total_recipes']); ?></p>
-      </div>
     </section>
 
     <section class="dashboard-actions">

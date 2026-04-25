@@ -58,18 +58,21 @@ include(SHARED_PATH . '/public_header.php'); ?>
 
 <div class="wrapper">
   <div class="container">
-    <h1>Login</h1>
-    <?php echo display_errors($errors); ?>
-    <form action="<?php echo url_for('/login.php'); ?>" method="post">
-      <label for="username">Username:</label><br>
-      <input type="text" name="username" id="username" value="<?php echo h($username); ?>" required><br>
-      <label for="password">Password:</label><br>
-      <input type="password" name="password" id="password" value="" required><br>
-      <div class="cf-turnstile" data-sitekey="<?php echo h($_ENV['TURNSTILE_SITE_KEY'] ?? ''); ?>"></div>
-      <button type="submit" class="button">Log in</button>
-      <input type="hidden" name="return_to" value="<?php echo h($return_to); ?>">
-    </form>
-    <span>New to anotherrecipe.site? <a href="<?php echo url_for('/signup.php'); ?>">Create an Account</a></span>
+    <noscript><h1>Logging into anotherrecipe.site requires Javascript to be enabled.</h1></noscript>
+    <section id="login-page">
+      <h1>Login</h1>
+      <?php echo display_errors($errors); ?>
+      <form action="<?php echo url_for('/login.php'); ?>" method="post">
+        <label for="username">Username:</label><br>
+        <input type="text" name="username" id="username" value="<?php echo h($username); ?>" required><br>
+        <label for="password">Password:</label><br>
+        <input type="password" name="password" id="password" value="" required><br>
+        <div class="cf-turnstile" data-sitekey="<?php echo h($_ENV['TURNSTILE_SITE_KEY'] ?? ''); ?>"></div>
+        <button type="submit" class="button">Log in</button>
+        <input type="hidden" name="return_to" value="<?php echo h($return_to); ?>">
+      </form>
+      <span>New to anotherrecipe.site? <a href="<?php echo url_for('/signup.php'); ?>">Create an Account</a></span>
+    </section>
   </div>
 </div>
 

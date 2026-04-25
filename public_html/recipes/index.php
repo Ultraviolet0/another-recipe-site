@@ -237,6 +237,9 @@ include(SHARED_PATH . '/public_header.php');
             <?php } else { ?>
               <img
                 src="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?>"
+                srcset="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?> 270w,
+                <?php echo url_for('/images/recipe-placeholder-540.webp'); ?> 540w"
+                sizes="270px"
                 width="270"
                 height="270"
                 alt=""

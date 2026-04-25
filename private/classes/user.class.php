@@ -437,11 +437,7 @@ class User extends DatabaseObject
       'total_users' => 0,
       'pending_users' => 0,
       'active_users' => 0,
-      'disabled_users' => 0,
-      'member_users' => 0,
-      'admin_users' => 0,
-      'super_admin_users' => 0,
-      'total_recipes' => 0
+      'disabled_users' => 0
     ];
 
     $sql = "SELECT ";
@@ -461,35 +457,7 @@ class User extends DatabaseObject
       $counts['active_users'] = (int)($row['active_users'] ?? 0);
       $counts['disabled_users'] = (int)($row['disabled_users'] ?? 0);
     }
-
-    $sql = "SELECT r.name_rol, COUNT(*) AS role_total ";
-    $sql .= "FROM user_role_usrrol ur ";
-    $sql .= "INNER JOIN role_rol r ON ur.id_rol_usrrol = r.id_rol ";
-    $sql .= "GROUP BY r.name_rol";
-
-    $result = static::$database->query($sql);
-    if ($result) {
-      while ($row = $result->fetch_assoc()) {
-        if ($row['name_rol'] === 'member') {
-          $counts['member_users'] = (int)$row['role_total'];
-        } elseif ($row['name_rol'] === 'admin') {
-          $counts['admin_users'] = (int)$row['role_total'];
-        } elseif ($row['name_rol'] === 'super admin') {
-          $counts['super_admin_users'] = (int)$row['role_total'];
-        }
-      }
-      $result->free();
-    }
-
-    $sql = "SELECT COUNT(*) AS total_recipes FROM recipe_rcp";
-    $result = static::$database->query($sql);
-    if ($result) {
-      $row = $result->fetch_assoc();
-      $result->free();
-
-      $counts['total_recipes'] = (int)($row['total_recipes'] ?? 0);
-    }
-
+    
     return $counts;
   }
 

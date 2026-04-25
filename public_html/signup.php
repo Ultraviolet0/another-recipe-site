@@ -51,14 +51,25 @@ include(SHARED_PATH . '/public_header.php'); ?>
 
 <div class="wrapper">
   <div class="container">
-    <h1>Signup</h1>
-    <?php echo display_errors($user->errors); ?>
-    <form action="<?php echo url_for('/signup.php'); ?>" method="post">
-      <?php include('admin/form_fields.php'); ?>
-      <div class="cf-turnstile" data-sitekey="<?php echo h($_ENV['TURNSTILE_SITE_KEY'] ?? ''); ?>"></div>
-      <button type="submit" class="button">Sign Up</button>
-    </form>
-    <span>Already have an account? <a href="<?php echo url_for('/login.php'); ?>">Login</a></span>
+    <noscript><h1>Signing up on anotherrecipe.site requires Javascript to be enabled.</h1></noscript>
+    <section id="signup-page">
+      <h1>Signup</h1>
+      <?php echo display_errors($user->errors); ?>
+      <form action="<?php echo url_for('/signup.php'); ?>" method="post">
+        <label for="email">Email</label><br>
+        <input type="text" id="email" name="user[email_usr]" value="<?php echo h($user->email_usr); ?>"><br>
+        <label for="username">Username</label><br>
+        <input type="text" id="username" name="user[username_usr]" value="<?php echo h($user->username_usr); ?>"><br>
+        <label for="password">Password</label><br>
+        <input type="password" id="password" name="user[password]" value=""><br>
+        <p class="form-help">Password must contain at least 8 characters, including an uppercase letter, lowercase letter, and a number or symbol.</p>
+        <label for="confirm-password">Confirm Password</label><br>
+        <input type="password" id="confirm-password" name="user[confirm_password]" value=""><br>
+        <div class="cf-turnstile" data-sitekey="<?php echo h($_ENV['TURNSTILE_SITE_KEY'] ?? ''); ?>"></div>
+        <button type="submit" class="button">Sign Up</button>
+      </form>
+      <span>Already have an account? <a href="<?php echo url_for('/login.php'); ?>">Login</a></span>
+    </section>
   </div>
 </div>
 

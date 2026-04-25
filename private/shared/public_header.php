@@ -129,7 +129,7 @@
 
                   <nav class="header-user-menu-links" aria-label="Account menu">
                     <?php if ($session->is_admin_logged_in()) { ?>
-                      <li><a href="<?php echo url_for('/admin'); ?>"><span>Admin</span></a></li>
+                      <li><a href="<?php echo url_for('/admin'); ?>"><span>Admin Dashboard</span></a></li>
                     <?php } ?>
                     <li><a href="<?php echo url_for('/dashboard'); ?>"><span>Dashboard</span></a></li>
                     <li><a href="<?php echo url_for('/dashboard/recipes.php'); ?>"><span>My Recipes</span></a></li>

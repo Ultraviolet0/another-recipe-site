@@ -24,6 +24,9 @@
       <nav class="site-footer-section" aria-labelledby="footer-account-heading">
         <h2 id="footer-account-heading" class="site-footer-heading">Account</h2>
         <ul class="site-footer-list">
+          <?php if ($session->is_admin_logged_in()) { ?>
+            <li><a href="<?php echo url_for('/admin'); ?>"><span>Admin Dashboard</span></a></li>
+          <?php } ?>
           <?php if ($session->is_logged_in()) { ?>
             <li><a href="<?php echo url_for('/dashboard'); ?>">Dashboard</a></li>
             <li><a href="<?php echo url_for('/dashboard/recipes.php'); ?>">My Recipes</a></li>
