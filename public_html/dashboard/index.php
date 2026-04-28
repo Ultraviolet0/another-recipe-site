@@ -24,6 +24,27 @@ $unlisted_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'unli
 $private_recipes = Recipe::count_by_user_id_and_privacy($current_user_id, 'private');
 $recent_recipes = Recipe::find_by_user_id($current_user_id, 5);
 
+$ai_recommendations = $_SESSION['dashboard_ai_recommendations'] ?? '';
+$ai_recommendations_error = '';
+
+if (is_post_request()) {
+  $action = $_POST['action'] ?? '';
+
+  if ($action === 'generate_ai_recommendations') {
+    $ai_result = generate_dashboard_ai_recommendations($current_user_id, $user->username_usr);
+
+    if ($ai_result['ok']) {
+      $ai_recommendations = trim($ai_result['content']);
+      $_SESSION['dashboard_ai_recommendations'] = $ai_recommendations;
+    } else {
+      $ai_recommendations_error = $ai_result['error'];
+    }
+  } elseif ($action === 'clear_ai_recommendations') {
+    unset($_SESSION['dashboard_ai_recommendations']);
+    $ai_recommendations = '';
+  }
+}
+
 $page_title = 'Dashboard';
 include(SHARED_PATH . '/public_header.php');
 ?>
@@ -90,6 +111,48 @@ include(SHARED_PATH . '/public_header.php');
           </a>
         <?php } ?>
       </div>
+    </section>
+
+    <section id="dashboard-ai-recommendations">
+      <h3>AI Recommendations</h3>
+      <p>Generate recipe ideas based on the recipes you have already created.</p>
+
+      <form action="<?php echo url_for('/dashboard/index.php'); ?>" method="post" class="dashboard-ai-form">
+        <button
+          type="submit"
+          class="button dashboard-ai-generate-button"
+          name="action"
+          value="generate_ai_recommendations"
+          <?php echo $total_recipes < 1 ? 'disabled' : ''; ?>>
+          Generate Recommendations
+        </button>
+
+        <?php if ($ai_recommendations !== '') { ?>
+          <button
+            type="submit"
+            class="button button-secondary"
+            name="action"
+            value="clear_ai_recommendations">
+            Clear
+          </button>
+        <?php } ?>
+      </form>
+
+      <?php if ($total_recipes < 1) { ?>
+        <p class="form-help">Add at least one recipe first to generate AI recommendations.</p>
+      <?php } ?>
+
+      <?php if ($ai_recommendations_error !== '') { ?>
+        <div class="errors">
+          <p><?php echo h($ai_recommendations_error); ?></p>
+        </div>
+      <?php } ?>
+
+      <?php if ($ai_recommendations !== '') { ?>
+        <div class="dashboard-ai-output">
+          <?php echo format_dashboard_ai_recommendations_html($ai_recommendations); ?>
+        </div>
+      <?php } ?>
     </section>
 
     <section class="dashboard-recent">

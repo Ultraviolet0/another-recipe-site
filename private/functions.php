@@ -264,57 +264,53 @@ function build_admin_recent_activity($limit = 8)
 
   $items = [];
 
-  if (method_exists('User', 'find_recent_signups')) {
-    $recent_users = User::find_recent_signups($limit);
+  $recent_users = User::find_recent_signups($limit);
 
-    foreach ($recent_users as $recent_user) {
-      $timestamp = strtotime($recent_user->created_at_usr);
+  foreach ($recent_users as $recent_user) {
+    $timestamp = strtotime($recent_user->created_at_usr);
 
-      $items[] = [
-        'type' => 'User Signup',
-        'title' => $recent_user->username_usr . ' signed up.',
-        'meta' => [
-          '<strong>Status:</strong> ' . display_title_case($recent_user->status_usr),
-          '<strong>Date:</strong> ' . date('M j, Y g:i A', $timestamp)
-        ],
-        'action_url' => url_for('/admin/users.php'),
-        'action_label' => 'Review User',
-        'timestamp' => $timestamp
-      ];
-    }
+    $items[] = [
+      'type' => 'User Signup',
+      'title' => $recent_user->username_usr . ' signed up.',
+      'meta' => [
+        '<strong>Status:</strong> ' . display_title_case($recent_user->status_usr),
+        '<strong>Date:</strong> ' . date('M j, Y g:i A', $timestamp)
+      ],
+      'action_url' => url_for('/admin/users.php'),
+      'action_label' => 'Review User',
+      'timestamp' => $timestamp
+    ];
   }
 
-  if (method_exists('Recipe', 'find_recent_activity')) {
-    $recent_recipe_activity = Recipe::find_recent_activity($limit);
+  $recent_recipe_activity = Recipe::find_recent_activity($limit);
 
-    foreach ($recent_recipe_activity as $activity) {
-      $created_ts = strtotime($activity['created_at_rcp']);
-      $updated_ts = strtotime($activity['updated_at_rcp']);
+  foreach ($recent_recipe_activity as $activity) {
+    $created_ts = strtotime($activity['created_at_rcp']);
+    $updated_ts = strtotime($activity['updated_at_rcp']);
 
-      $is_update = ($updated_ts - $created_ts) > 5;
+    $is_update = ($updated_ts - $created_ts) > 5;
 
-      if ($is_update) {
-        $title = $activity['creator_username_usr'] . ' updated recipe "' . $activity['title_rcp'] . '".';
-        $timestamp = $updated_ts;
-        $type = 'Recipe Updated';
-      } else {
-        $title = $activity['creator_username_usr'] . ' created recipe "' . $activity['title_rcp'] . '".';
-        $timestamp = $created_ts;
-        $type = 'Recipe Created';
-      }
-
-      $items[] = [
-        'type' => $type,
-        'title' => $title,
-        'meta' => [
-          '<strong>Privacy:</strong> ' . display_title_case($activity['privacy_rcp']),
-          '<strong>Date:</strong> ' . date('M j, Y g:i A', $timestamp)
-        ],
-        'action_url' => url_for('/recipes/show.php?id=' . u($activity['id_rcp'])),
-        'action_label' => 'View Recipe',
-        'timestamp' => $timestamp
-      ];
+    if ($is_update) {
+      $title = $activity['creator_username_usr'] . ' updated recipe "' . $activity['title_rcp'] . '".';
+      $timestamp = $updated_ts;
+      $type = 'Recipe Updated';
+    } else {
+      $title = $activity['creator_username_usr'] . ' created recipe "' . $activity['title_rcp'] . '".';
+      $timestamp = $created_ts;
+      $type = 'Recipe Created';
     }
+
+    $items[] = [
+      'type' => $type,
+      'title' => $title,
+      'meta' => [
+        '<strong>Privacy:</strong> ' . display_title_case($activity['privacy_rcp']),
+        '<strong>Date:</strong> ' . date('M j, Y g:i A', $timestamp)
+      ],
+      'action_url' => url_for('/recipes/show.php?id=' . u($activity['id_rcp'])),
+      'action_label' => 'View Recipe',
+      'timestamp' => $timestamp
+    ];
   }
 
   usort($items, function ($a, $b) {

@@ -876,6 +876,92 @@ function initPrintRecipePage() {
   }
 }
 
+function initDashboardAiRecommendations() {
+  let section = document.querySelector('#dashboard-ai-recommendations');
+  if (!section) return;
+
+  function bindSection() {
+    const form = section.querySelector('.dashboard-ai-form');
+    if (!form) return;
+
+    const generateButton = form.querySelector('button[value="generate_ai_recommendations"]');
+    const clearButton = form.querySelector('button[value="clear_ai_recommendations"]');
+
+    let pendingAction = '';
+
+    if (generateButton) {
+      generateButton.addEventListener('click', () => {
+        pendingAction = 'generate_ai_recommendations';
+      });
+    }
+
+    if (clearButton) {
+      clearButton.addEventListener('click', () => {
+        pendingAction = 'clear_ai_recommendations';
+      });
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!pendingAction) {
+        return;
+      }
+
+      const formData = new FormData(form);
+      formData.set('action', pendingAction);
+
+      if (pendingAction === 'generate_ai_recommendations' && generateButton) {
+        generateButton.textContent = 'Generating...';
+        generateButton.classList.add('is-loading');
+        generateButton.disabled = true;
+      }
+
+      const actionUrl = form.getAttribute('action') || window.location.href;
+
+      try {
+        const response = await fetch(actionUrl, {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Request failed.');
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newSection = doc.querySelector('#dashboard-ai-recommendations');
+
+        if (!newSection) {
+          throw new Error('Updated AI section not found.');
+        }
+
+        section.replaceWith(newSection);
+        section = newSection;
+        bindSection();
+      } catch (error) {
+        console.error('Failed to update AI recommendations.', error);
+
+        if (generateButton) {
+          generateButton.textContent = 'Generate Recommendations';
+          generateButton.classList.remove('is-loading');
+          generateButton.disabled = false;
+        }
+      } finally {
+        pendingAction = '';
+      }
+    });
+  }
+
+  bindSection();
+}
+
 function init() {
   initRecipeFilters();
   initIngredientScaling();
@@ -889,6 +975,7 @@ function init() {
   initAdminCategoryForms();
   initAdminUserFilters();
   initPrintRecipePage();
+  initDashboardAiRecommendations();
 }
 
 document.body.classList.add('js');

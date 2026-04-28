@@ -132,7 +132,16 @@ include(SHARED_PATH . '/public_header.php');
                     alt="<?php echo h($recipe->title_rcp); ?>"
                     loading="lazy">
                 <?php } else { ?>
-                  <img src="<?php echo url_for('/images/recipe-placeholder-270.png'); ?>" width="270" height="270" alt="No recipe image." loading="lazy">
+                  <img
+                    src="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?>"
+                    srcset="<?php echo url_for('/images/recipe-placeholder-270.webp'); ?> 270w,
+                    <?php echo url_for('/images/recipe-placeholder-540.webp'); ?> 540w"
+                    sizes="270px"
+                    width="270"
+                    height="270"
+                    alt="No recipe image."
+                    loading="lazy"
+                    decoding="async">
                 <?php } ?>
 
                 <?php if (!is_blank($badge_name)) { ?>

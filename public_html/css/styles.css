@@ -1890,7 +1890,7 @@ main form input[type='file']::file-selector-button:hover {
   aspect-ratio: 1 / 1;
   border: 1px solid var(--color-border);
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px var(--color-card-shadow);
   display: block;
   height: 140px;
   object-fit: cover;
@@ -2082,7 +2082,7 @@ main form input[type='file']::file-selector-button:hover {
 
 .dashboard-action-card:hover {
   border-color: var(--color-accent);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 14px var(--color-card-shadow);
   color: var(--color-text);
   text-decoration: none;
 }
@@ -2112,6 +2112,41 @@ main form input[type='file']::file-selector-button:hover {
 
 .dashboard-section-heading h3 {
   margin: 0;
+}
+
+#dashboard-ai-recommendations h3,
+#dashboard-ai-recommendations p {
+  margin: 0 0 1rem;
+}
+
+.dashboard-ai-form {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.dashboard-ai-generate-button.is-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.dashboard-ai-output {
+  background: var(--color-section-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+}
+
+.dashboard-ai-output h4 {
+  margin: 0;
+}
+
+.dashboard-ai-output ul {
+  margin-bottom: 0;
+  padding-left: 2rem;
+}
+
+.dashboard-ai-output li {
+  margin-bottom: 0.4rem;
 }
 
 .dashboard-recipe-list,

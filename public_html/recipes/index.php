@@ -242,7 +242,7 @@ include(SHARED_PATH . '/public_header.php');
                 sizes="270px"
                 width="270"
                 height="270"
-                alt=""
+                alt="No recipe image."
                 loading="lazy"
                 decoding="async">
             <?php } ?>
