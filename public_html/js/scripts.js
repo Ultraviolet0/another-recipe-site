@@ -352,7 +352,7 @@ function initRecipeImageGallery() {
   const modalImg = document.querySelector('.recipe-image-modal-img');
   const modalBackdrop = document.querySelector('.recipe-image-modal-backdrop');
 
-  if (!heroWrap || !heroLink || !thumbs.length) return;
+  if (!heroWrap || !heroLink) return;
 
   let currentImage = heroWrap.querySelector('.recipe-hero-image-current');
   let nextImage = heroWrap.querySelector('.recipe-hero-image-next');
@@ -644,7 +644,7 @@ function initRecipeFormEnhancements() {
 
       if (label) {
         label.setAttribute('for', `direction-step-${newIndex}`);
-        label.textContent = `Step ${newIndex + 1}`;
+        label.textContent = `Step ${newIndex + 1} (500 char max)`;
       }
 
       if (textarea) {
