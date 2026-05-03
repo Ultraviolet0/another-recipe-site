@@ -184,25 +184,25 @@ include(SHARED_PATH . '/public_header.php');
     <section class="active-filters" aria-label="Active filters">
       <p><strong>Active Filters:</strong></p>
 
-      <?php if ($search !== '') { ?>
-        <a
-          class="active-filter-chip"
-          href="<?php echo recipes_index_page_url(1, '', $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
-          Search: <?php echo h($search); ?>
-          <span aria-hidden="true">&times;</span>
-        </a>
-      <?php } ?>
-
-      <?php if ($sort !== 'newest') { ?>
-        <a
-          class="active-filter-chip"
-          href="<?php echo recipes_index_page_url(1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, 'newest'); ?>">
-          Sort: <?php echo h($allowed_sorts[$sort]); ?>
-          <span aria-hidden="true">&times;</span>
-        </a>
-      <?php } ?>
-
       <div class="active-filter-chips">
+        <?php if ($search !== '') { ?>
+          <a
+            class="active-filter-chip"
+            href="<?php echo recipes_index_page_url(1, '', $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
+            Search: <?php echo h($search); ?>
+            <span aria-hidden="true">&times;</span>
+          </a>
+        <?php } ?>
+
+        <?php if ($sort !== 'newest') { ?>
+          <a
+            class="active-filter-chip"
+            href="<?php echo recipes_index_page_url(1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, 'newest'); ?>">
+            Sort: <?php echo h($allowed_sorts[$sort]); ?>
+            <span aria-hidden="true">&times;</span>
+          </a>
+        <?php } ?>
+
         <?php foreach ($selected_meal_types as $id) {
           if (!isset($meal_type_map[(string)$id])) continue;
         ?>
