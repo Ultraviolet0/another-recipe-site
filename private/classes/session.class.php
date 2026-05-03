@@ -7,7 +7,7 @@ class Session {
   private $last_login;
   private $roles = [];
 
-  public const MAX_LOGIN_AGE = 60 * 60 * 24; // 1 day
+  public const MAX_LOGIN_AGE = 60 * 60 * 24 * 7; // 1 week
 
   /**
    * Start the session and check for stored login data.
