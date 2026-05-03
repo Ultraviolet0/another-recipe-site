@@ -738,7 +738,8 @@ body.js .home-carousel::-webkit-scrollbar {
   padding: 1rem;
 }
 
-.recipe-card h2 {
+.recipe-card h2,
+.recipe-card h3 {
   display: -webkit-box;
   font-size: 1.25rem;
   -webkit-box-orient: vertical;
