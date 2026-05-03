@@ -2,8 +2,8 @@
 -- This script creates the database for Another Recipe Site
 -- Robert Uhren
 -- WEB-289
--- February 15, 2026
--- Modify lines 317-319 to your preferred user credentials
+-- May 3, 2026
+-- Modify lines 321-323 to your preferred user credentials
 -- **************************************************************************
 
 -- create the database (consider renaming database to fit your preferences)
