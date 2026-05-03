@@ -201,7 +201,16 @@ include(SHARED_PATH . '/public_header.php');
               <?php foreach ($images as $idx => $file_name) {
                 $thumb_270 = url_for('/uploads/recipes/270/' . u($file_name));
                 $thumb_540 = url_for('/uploads/recipes/540/' . u($file_name));
-                $full_url  = url_for('/uploads/recipes/1600/' . u($file_name));
+
+                $hero_540 = url_for('/uploads/recipes/540/' . u($file_name));
+                $hero_800 = url_for('/uploads/recipes/800/' . u($file_name));
+                $hero_1600 = url_for('/uploads/recipes/1600/' . u($file_name));
+
+                $hero_src = $hero_540;
+                $hero_srcset = $hero_540 . ' 540w, ' . $hero_800 . ' 800w, ' . $hero_1600 . ' 1600w';
+                $hero_sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px';
+
+                $full_url = $hero_1600;
 
                 $alt = $recipe->title_rcp . ' photo ' . ($idx + 1) . '.';
               ?>
@@ -211,6 +220,9 @@ include(SHARED_PATH . '/public_header.php');
                   target="_blank"
                   rel="noopener noreferrer"
                   data-full-url="<?php echo h($full_url); ?>"
+                  data-hero-src="<?php echo h($hero_src); ?>"
+                  data-hero-srcset="<?php echo h($hero_srcset); ?>"
+                  data-hero-sizes="<?php echo h($hero_sizes); ?>"
                   data-alt="<?php echo h($alt); ?>">
                   <img
                     src="<?php echo h($thumb_270); ?>"
@@ -225,6 +237,15 @@ include(SHARED_PATH . '/public_header.php');
             </div>
           <?php } ?>
 
+          <div class="recipe-image-modal" hidden aria-hidden="true">
+            <div class="recipe-image-modal-backdrop">
+              <img
+                src=""
+                alt=""
+                class="recipe-image-modal-img"
+                decoding="async">
+            </div>
+          </div>
         </section>
       <?php } ?>
 

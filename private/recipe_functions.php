@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Build the default recipe draft data.
+ *
+ * @return array default recipe draft data
+ */
 function recipe_default_draft()
 {
   $ing_count = 6;
@@ -32,12 +37,21 @@ function recipe_default_draft()
   ];
 }
 
-function recipe_load_new_draft() {
+/**
+ * Load a new recipe draft into the session.
+ */
+function recipe_load_new_draft()
+{
   $_SESSION['recipe_draft'] = recipe_default_draft();
   $_SESSION['recipe_draft_mode'] = 'new';
   unset($_SESSION['recipe_draft_recipe_id']);
 }
 
+/**
+ * Get the current recipe draft from the session.
+ *
+ * @return array current recipe draft data
+ */
 function recipe_get_draft()
 {
   if (!isset($_SESSION['recipe_draft'])) {
@@ -46,17 +60,34 @@ function recipe_get_draft()
   return $_SESSION['recipe_draft'];
 }
 
-function recipe_clear_draft() {
+/**
+ * Clear recipe draft data from the session.
+ */
+function recipe_clear_draft()
+{
   unset($_SESSION['recipe_draft']);
   unset($_SESSION['recipe_draft_mode']);
   unset($_SESSION['recipe_draft_recipe_id']);
 }
 
+/**
+ * Save recipe draft data to the session.
+ *
+ * @param array $draft - recipe draft data to save
+ */
 function recipe_save_draft($draft)
 {
   $_SESSION['recipe_draft'] = $draft;
 }
 
+/**
+ * Merge posted recipe form data into a recipe draft.
+ *
+ * @param array $draft - existing recipe draft data
+ * @param array $post - posted recipe form data
+ * 
+ * @return array updated recipe draft data
+ */
 function recipe_merge_post_into_draft($draft, $post)
 {
   $draft['errors'] = [];
@@ -99,6 +130,13 @@ function recipe_merge_post_into_draft($draft, $post)
   return $draft;
 }
 
+/**
+ * Add a blank ingredient row to a recipe draft.
+ *
+ * @param array $draft - recipe draft data
+ * 
+ * @return array updated recipe draft data
+ */
 function recipe_add_ingredient_row($draft)
 {
   $draft['counts']['ingredients'] = ($draft['counts']['ingredients'] ?? 0) + 1;
@@ -110,6 +148,13 @@ function recipe_add_ingredient_row($draft)
   return $draft;
 }
 
+/**
+ * Add a blank direction row to a recipe draft.
+ *
+ * @param array $draft - recipe draft data
+ * 
+ * @return array updated recipe draft data
+ */
 function recipe_add_direction_row($draft)
 {
   $draft['counts']['directions'] = ($draft['counts']['directions'] ?? 0) + 1;
@@ -117,13 +162,31 @@ function recipe_add_direction_row($draft)
   return $draft;
 }
 
-function recipe_load_edit_draft(Recipe $recipe) {
+/**
+ * Load an existing recipe into the session as an edit draft.
+ *
+ * @param Recipe $recipe - recipe object to edit
+ */
+function recipe_load_edit_draft(Recipe $recipe)
+{
   $_SESSION['recipe_draft'] = $recipe->draft_data();
   $_SESSION['recipe_draft_mode'] = 'edit';
   $_SESSION['recipe_draft_recipe_id'] = (string)$recipe->id_rcp;
 }
 
-function recipes_index_page_url($page_num, $search = '', $meal_types = [], $cuisines = [], $dietary_styles = [])
+/**
+ * Build a URL for the recipe index page with filters.
+ *
+ * @param int $page_num - page number to link to
+ * @param string $search - search text
+ * @param array $meal_types - selected meal type IDs
+ * @param array $cuisines - selected cuisine IDs
+ * @param array $dietary_styles - selected dietary style IDs
+ * @param string $sort - selected sort option
+ * 
+ * @return string recipe index page URL
+ */
+function recipes_index_page_url($page_num, $search = '', $meal_types = [], $cuisines = [], $dietary_styles = [], $sort = 'newest')
 {
   $params = ['page' => $page_num];
 
@@ -144,10 +207,28 @@ function recipes_index_page_url($page_num, $search = '', $meal_types = [], $cuis
     $params['dietary_styles'] = array_values($dietary_styles);
   }
 
+  $sort = trim((string)$sort);
+  if ($sort !== '' && $sort !== 'newest') {
+    $params['sort'] = $sort;
+  }
+
   return url_for('/recipes/index.php?' . http_build_query($params));
 }
 
-function recipes_index_remove_filter_url($type, $remove_id, $search = '', $meal_types = [], $cuisines = [], $dietary_styles = [])
+/**
+ * Build a recipe index URL with one filter removed.
+ *
+ * @param string $type - filter type to remove from
+ * @param int $remove_id - filter ID to remove
+ * @param string $search - search text
+ * @param array $meal_types - selected meal type IDs
+ * @param array $cuisines - selected cuisine IDs
+ * @param array $dietary_styles - selected dietary style IDs
+ * @param string $sort - selected sort option
+ * 
+ * @return string recipe index page URL
+ */
+function recipes_index_remove_filter_url($type, $remove_id, $search = '', $meal_types = [], $cuisines = [], $dietary_styles = [], $sort = 'newest')
 {
   $filters = [
     'meal_types' => array_values($meal_types),
@@ -167,6 +248,7 @@ function recipes_index_remove_filter_url($type, $remove_id, $search = '', $meal_
     $search,
     $filters['meal_types'],
     $filters['cuisines'],
-    $filters['dietary_styles']
+    $filters['dietary_styles'],
+    $sort
   );
 }

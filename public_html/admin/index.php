@@ -100,7 +100,7 @@ include(SHARED_PATH . '/public_header.php');
 
         <a class="dashboard-action-card" href="<?php echo url_for('/dashboard'); ?>">
           <h4>Personal Dashboard</h4>
-          <p>Return to your personal dashboard and account tools.</p>
+          <p>Go to your personal dashboard and account tools.</p>
         </a>
       </div>
     </section>

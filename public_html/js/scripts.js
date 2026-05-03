@@ -1,8 +1,12 @@
+/**
+ * Initialize recipe filter form auto-submit behavior and menu focus handling.
+ */
 function initRecipeFilters() {
   const filterForm = document.querySelector('.recipe-filters form');
   if (!filterForm) return;
 
-  const inputs = filterForm.querySelectorAll('input[type="checkbox"]');
+  const checkboxInputs = filterForm.querySelectorAll('input[type="checkbox"]');
+  const radioInputs = filterForm.querySelectorAll('input[type="radio"][name="sort"]');
   const menus = filterForm.querySelectorAll('.filter-menu');
 
   const restoreId = sessionStorage.getItem('recipeFilterFocusId');
@@ -28,15 +32,29 @@ function initRecipeFilters() {
     sessionStorage.removeItem('recipeFilterMenu');
   }
 
-  inputs.forEach((input) => {
+  /*** Auto-submit the recipe filter form after storing the active input and menu.
+   * 
+   * @param {Object} input - filter input that triggered the form submission
+   */
+  function autoSubmitFromInput(input) {
+    if (document.body.classList.contains('loading')) return;
+
+    sessionStorage.setItem('recipeFilterFocusId', input.id);
+    sessionStorage.setItem('recipeFilterMenu', input.dataset.filterMenu || '');
+
+    document.body.classList.add('loading');
+    filterForm.submit();
+  }
+
+  checkboxInputs.forEach((input) => {
     input.addEventListener('change', () => {
-      if (document.body.classList.contains('loading')) return;
+      autoSubmitFromInput(input);
+    });
+  });
 
-      sessionStorage.setItem('recipeFilterFocusId', input.id);
-      sessionStorage.setItem('recipeFilterMenu', input.dataset.filterMenu || '');
-
-      document.body.classList.add('loading');
-      filterForm.submit();
+  radioInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      autoSubmitFromInput(input);
     });
   });
 
@@ -66,6 +84,9 @@ function initRecipeFilters() {
   });
 }
 
+/**
+ * Initialize recipe ingredient scaling buttons and apply the selected scale.
+ */
 function initIngredientScaling() {
   const scaleButtons = document.querySelectorAll('.scale-button');
   const qtySpans = document.querySelectorAll('.recipe-ingredients .qty[data-base-qty]');
@@ -73,6 +94,11 @@ function initIngredientScaling() {
 
   if (!scaleButtons.length || !qtySpans.length) return;
 
+  /**
+   * Scale ingredient quantities and servings based on the selected scale value.
+   * 
+   * @param {string} scale - selected recipe scale value
+   */
   function applyScale(scale) {
     const numericScale = Number(scale || '1');
 
@@ -121,6 +147,13 @@ function initIngredientScaling() {
   }
 }
 
+/**
+ * Format a numeric quantity as a kitchen-friendly whole number, fraction, or decimal.
+ *
+ * @param {Number} value - quantity value to format
+ * 
+ * @return {string} formatted quantity
+ */
 function formatQuantityKitchen(value) {
   const num = Number(value);
 
@@ -173,6 +206,9 @@ function formatQuantityKitchen(value) {
   return str;
 }
 
+/**
+ * Initialize automatic recipe rating submission and clear rating behavior.
+ */
 function initAutoRating() {
   const ratingForm = document.querySelector('.rating-form form');
   if (!ratingForm) return;
@@ -182,6 +218,13 @@ function initAutoRating() {
   const radios = ratingForm.querySelectorAll('input[type="radio"][name="rating"]');
   const clearButton = ratingForm.querySelector('.rating-clear-button');
 
+  /**
+   * Submit recipe rating form data with fetch and update the rating display.
+   * 
+   * @param {Object} formData - rating form data to submit
+   * 
+   * @return {Promise} fetch promise for the rating submission
+   */
   function submitRating(formData) {
     return fetch(ratingForm.action, {
       method: 'POST',
@@ -239,6 +282,12 @@ function initAutoRating() {
   }
 }
 
+/**
+ * Update selected rating radio button based on the user's current rating.
+ *
+ * @param {Object} ratingForm - form element containing rating inputs
+ * @param {Number|string} userRating - current user rating value
+ */
 function updateSelectedRating(ratingForm, userRating) {
   const radios = ratingForm.querySelectorAll('input[type="radio"][name="rating"]');
 
@@ -247,6 +296,11 @@ function updateSelectedRating(ratingForm, userRating) {
   });
 }
 
+/**
+ * Update the displayed recipe rating average and rating count.
+ *
+ * @param {Object} data - rating response data
+ */
 function updateRatingSummary(data) {
   const summary = document.querySelector('[data-rating-summary]');
   if (!summary) return;
@@ -274,6 +328,12 @@ function updateRatingSummary(data) {
   count.textContent = `(${data.rating_count})`;
 }
 
+/**
+ * Show or hide the clear rating button based on whether or not the user has rated the recipe.
+ *
+ * @param {Object} ratingForm - form element containing the clear button
+ * @param {Number|string|null} userRating - current user rating value
+ */
 function updateClearButton(ratingForm, userRating) {
   const clearButton = ratingForm.querySelector('.rating-clear-button');
   if (!clearButton) return;
@@ -281,16 +341,72 @@ function updateClearButton(ratingForm, userRating) {
   clearButton.hidden = !userRating;
 }
 
+/**
+ * Initialize recipe image gallery thumbnail swapping and modal behavior.
+ */
 function initRecipeImageGallery() {
   const heroWrap = document.querySelector('.recipe-image-hero');
   const heroLink = document.querySelector('.recipe-hero-link');
   const thumbs = document.querySelectorAll('.recipe-thumb');
+  const modal = document.querySelector('.recipe-image-modal');
+  const modalImg = document.querySelector('.recipe-image-modal-img');
+  const modalBackdrop = document.querySelector('.recipe-image-modal-backdrop');
 
   if (!heroWrap || !heroLink || !thumbs.length) return;
 
   let currentImage = heroWrap.querySelector('.recipe-hero-image-current');
   let nextImage = heroWrap.querySelector('.recipe-hero-image-next');
   let isTransitioning = false;
+
+  /**
+   * Open the recipe image modal using the current hero image.
+   */
+  function openModal() {
+    if (!modal || !modalImg) return;
+
+    const fullUrl = heroLink.getAttribute('href');
+    const altText = currentImage ? currentImage.alt : '';
+
+    if (!fullUrl) return;
+
+    modalImg.src = fullUrl;
+    modalImg.alt = altText;
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    modal.classList.add('is-open');
+    document.body.classList.add('modal-open');
+  }
+
+  /**
+   * Close the recipe image modal and clear its image source.
+   */
+  function closeModal() {
+    if (!modal || !modalImg) return;
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.hidden = true;
+    modalImg.removeAttribute('src');
+    modalImg.alt = '';
+    document.body.classList.remove('modal-open');
+  }
+
+  heroLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    openModal();
+  });
+
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', () => {
+      closeModal();
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal && !modal.hidden) {
+      closeModal();
+    }
+  });
 
   thumbs.forEach((thumb) => {
     thumb.addEventListener('click', (event) => {
@@ -299,9 +415,15 @@ function initRecipeImageGallery() {
       if (isTransitioning) return;
 
       const fullUrl = thumb.dataset.fullUrl;
-      const altText = thumb.dataset.alt || currentImage.alt;
+      const heroSrc = thumb.dataset.heroSrc || fullUrl;
+      const heroSrcset = thumb.dataset.heroSrcset || '';
+      const heroSizes = thumb.dataset.heroSizes || '';
+      const altText = thumb.dataset.alt || currentImage.alt || '';
 
-      if (!fullUrl || currentImage.src === fullUrl) return;
+      if (!fullUrl || !heroSrc) return;
+
+      const currentHref = heroLink.getAttribute('href') || '';
+      if (currentHref === fullUrl) return;
 
       isTransitioning = true;
 
@@ -311,10 +433,22 @@ function initRecipeImageGallery() {
       const loader = new Image();
 
       loader.onload = () => {
-        nextImage.src = fullUrl;
+        nextImage.src = heroSrc;
+
+        if (heroSrcset) {
+          nextImage.srcset = heroSrcset;
+        } else {
+          nextImage.removeAttribute('srcset');
+        }
+
+        if (heroSizes) {
+          nextImage.sizes = heroSizes;
+        } else {
+          nextImage.removeAttribute('sizes');
+        }
+
         nextImage.alt = altText;
 
-        // let browser paint new src before transition
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             heroWrap.classList.add('is-transitioning');
@@ -324,20 +458,19 @@ function initRecipeImageGallery() {
         setTimeout(() => {
           heroLink.href = fullUrl;
 
-          // swap class roles
           currentImage.classList.remove('recipe-hero-image-current');
           currentImage.classList.add('recipe-hero-image-next');
 
           nextImage.classList.remove('recipe-hero-image-next');
           nextImage.classList.add('recipe-hero-image-current');
 
-          // update JS refs
           const oldCurrent = currentImage;
           currentImage = nextImage;
           nextImage = oldCurrent;
 
-          // clear old hidden image so it won't flash stale content later
-          nextImage.src = '';
+          nextImage.removeAttribute('src');
+          nextImage.removeAttribute('srcset');
+          nextImage.removeAttribute('sizes');
           nextImage.alt = '';
 
           heroWrap.classList.remove('is-transitioning');
@@ -345,11 +478,18 @@ function initRecipeImageGallery() {
         }, 250);
       };
 
-      loader.src = fullUrl;
+      loader.onerror = () => {
+        isTransitioning = false;
+      };
+
+      loader.src = heroSrc;
     });
   });
 }
 
+/**
+ * Initialize horizontal scrolling behavior for home page carousels.
+ */
 function initHomeCarousels() {
 
   const wrappers = document.querySelectorAll('.home-carousel-wrapper');
@@ -378,17 +518,21 @@ function initHomeCarousels() {
         behavior: 'smooth'
       });
     });
-
   });
-
 }
 
+/**
+ * Initialize recipe form enhancements for cuisine limits, ingredients, and steps.
+ */
 function initRecipeFormEnhancements() {
   const cuisineCheckboxes = document.querySelectorAll('input[name="cuisines[]"]');
   const cuisineMax = 3;
   const addIngredientButton = document.getElementById('add-ingredient-button');
   const addStepButton = document.getElementById('add-step-button');
 
+  /**
+   * Update cuisine checkbox disabled states when the maximum selection limit is reached.
+   */
   function updateCuisineState() {
     const checked = Array.from(cuisineCheckboxes).filter(c => c.checked);
     const isAtMax = checked.length >= cuisineMax;
@@ -521,6 +665,11 @@ function initRecipeFormEnhancements() {
   }
 }
 
+/**
+ * Show a dismissible toast message on the page.
+ *
+ * @param {string} message - message text to display
+ */
 function showToast(message) {
   if (!message) return;
 
@@ -547,10 +696,18 @@ function showToast(message) {
   wireToast(toast);
 }
 
+/**
+ * Add close, timeout, and hover behavior to a toast message.
+ *
+ * @param {Object} flashToast - toast element to wire
+ */
 function wireToast(flashToast) {
   const closeButton = flashToast.querySelector('.flash-toast-close');
   let hideTimeout = null;
 
+  /**
+   * Hide and remove the toast message from the page.
+   */
   function hideFlashToast() {
     flashToast.classList.add('is-hiding');
 
@@ -574,12 +731,18 @@ function wireToast(flashToast) {
   });
 }
 
+/**
+ * Initialize behavior for an existing flash toast message.
+ */
 function initFlashToast() {
   const flashToast = document.querySelector('.flash-toast');
   if (!flashToast) return;
   wireToast(flashToast);
 }
 
+/**
+ * Initialize desktop header user menu toggle and close behavior.
+ */
 function initHeaderUserMenu() {
   const menu = document.querySelector('.header-user-menu');
   const toggle = document.getElementById('header-user-menu-toggle');
@@ -587,16 +750,27 @@ function initHeaderUserMenu() {
 
   if (!menu || !toggle || !panel) return;
 
+  /**
+   * Check whether the header is currently using the mobile menu layout.
+   * 
+   * @return {boolean} true if the mobile menu layout is active
+   */
   function isMobileMenuMode() {
     return window.innerWidth <= 850;
   }
 
+  /**
+   * Close the desktop user menu.
+   */
   function closeMenu() {
     if (isMobileMenuMode()) return;
     menu.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
   }
 
+  /**
+   * Open the desktop user menu.
+   */
   function openMenu() {
     if (isMobileMenuMode()) return;
     menu.classList.add('is-open');
@@ -639,6 +813,9 @@ function initHeaderUserMenu() {
   });
 }
 
+/**
+ * Initialize responsive placement for the header search form.
+ */
 function initResponsiveHeaderSearch() {
   const searchForm = document.querySelector('#search-form');
   const siteHeaderBar = document.querySelector('#site-header-bar');
@@ -649,6 +826,9 @@ function initResponsiveHeaderSearch() {
 
   let currentPlacement = '';
 
+  /**
+   * Move the header search form to the correct location for the current screen width.
+   */
   function placeSearchForm() {
     const width = window.innerWidth;
 
@@ -674,6 +854,9 @@ function initResponsiveHeaderSearch() {
   window.addEventListener('resize', placeSearchForm);
 }
 
+/**
+ * Initialize admin category form panels for selecting, editing, and deleting items.
+ */
 function initAdminCategoryForms() {
   const panels = document.querySelectorAll('[data-category-panel]');
   if (!panels.length) return;
@@ -688,6 +871,9 @@ function initAdminCategoryForms() {
 
     if (!select || !input || !editButton || !deleteButton) return;
 
+    /**
+     * Synchronize the category panel controls with the selected category item.
+     */
     function syncPanel() {
       const selectedOption = select.options[select.selectedIndex];
       const hasSelection = !!select.value;
@@ -747,6 +933,9 @@ function initAdminCategoryForms() {
   });
 }
 
+/**
+ * Initialize AJAX filtering for the admin user results table.
+ */
 function initAdminUserFilters() {
   const form = document.querySelector('#admin-user-filters');
   if (!form) return;
@@ -762,6 +951,9 @@ function initAdminUserFilters() {
   let timeoutId = null;
   let controller = null;
 
+  /**
+   * Update admin user results based on the current filter form values.
+   */
   async function updateResults() {
     const formData = new FormData(form);
     const params = new URLSearchParams(formData);
@@ -840,6 +1032,9 @@ function initAdminUserFilters() {
   }
 }
 
+/**
+ * Initialize print recipe page controls for printing and hiding images.
+ */
 function initPrintRecipePage() {
   const printPage = document.querySelector('.print-recipe-page');
   if (!printPage) return;
@@ -848,6 +1043,9 @@ function initPrintRecipePage() {
   const hideImagesToggle = document.getElementById('print-hide-images-toggle');
   const hideImagesLabel = document.querySelector('label[for="print-hide-images-toggle"]');
 
+  /**
+   * Synchronize the print image visibility state with the toggle control.
+   */
   function syncHideImagesState() {
     if (!hideImagesToggle || !hideImagesLabel) return;
 
@@ -876,10 +1074,16 @@ function initPrintRecipePage() {
   }
 }
 
+/**
+ * Initialize AJAX controls for dashboard AI recommendations.
+ */
 function initDashboardAiRecommendations() {
   let section = document.querySelector('#dashboard-ai-recommendations');
   if (!section) return;
 
+  /**
+   * Bind dashboard AI recommendation form buttons and submission behavior.
+   */
   function bindSection() {
     const form = section.querySelector('.dashboard-ai-form');
     if (!form) return;
@@ -962,6 +1166,9 @@ function initDashboardAiRecommendations() {
   bindSection();
 }
 
+/**
+ * Initialize all JavaScript functionality for the application.
+ */
 function init() {
   initRecipeFilters();
   initIngredientScaling();

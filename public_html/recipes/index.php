@@ -12,6 +12,17 @@ $search = trim($search);
 $selected_meal_types = $_GET['meal_types'] ?? [];
 $selected_cuisines = $_GET['cuisines'] ?? [];
 $selected_dietary_styles = $_GET['dietary_styles'] ?? [];
+$sort = $_GET['sort'] ?? 'newest';
+$allowed_sorts = [
+  'newest' => 'Newest',
+  'oldest' => 'Oldest',
+  'fastest' => 'Fastest',
+  'top_rated' => 'Top Rated'
+];
+
+if (!array_key_exists($sort, $allowed_sorts)) {
+  $sort = 'newest';
+}
 
 $meal_types = MealType::find_all();
 $cuisines = Cuisine::find_all();
@@ -53,7 +64,8 @@ $recipes = Recipe::find_filtered_paginated(
   $search,
   $selected_meal_types,
   $selected_cuisines,
-  $selected_dietary_styles
+  $selected_dietary_styles,
+  $sort
 );
 
 $page_title = 'Recipes';
@@ -72,7 +84,11 @@ include(SHARED_PATH . '/public_header.php');
   </section>
 
   <?php
-  $has_active_filters = $search !== '' || !empty($selected_meal_types) || !empty($selected_cuisines) || !empty($selected_dietary_styles);
+  $has_active_filters = $search !== ''
+    || !empty($selected_meal_types)
+    || !empty($selected_cuisines)
+    || !empty($selected_dietary_styles)
+    || $sort !== 'newest';
   ?>
 
   <section class="recipe-filters" aria-label="Recipe filters">
@@ -82,7 +98,6 @@ include(SHARED_PATH . '/public_header.php');
       <?php } ?>
 
       <div class="filter-menu-row">
-
         <div class="filter-menu" data-filter-menu="meal-types">
           <button type="button" class="filter-menu-toggle">Meal Types</button>
           <div class="filter-menu-panel">
@@ -131,6 +146,31 @@ include(SHARED_PATH . '/public_header.php');
           </div>
         </div>
 
+        <div class="filter-menu" data-filter-menu="sort">
+          <button type="button" class="filter-menu-toggle">
+            Sort By
+            <span class="filter-menu-current">(<?php echo h($allowed_sorts[$sort]); ?>)</span>
+          </button>
+
+          <div class="filter-menu-panel">
+            <?php foreach ($allowed_sorts as $sort_value => $sort_label) {
+              $input_id = 'filter-sort-' . $sort_value;
+              $checked = ($sort === $sort_value) ? 'checked' : '';
+            ?>
+              <div class="filter-option">
+                <input
+                  type="radio"
+                  id="<?php echo h($input_id); ?>"
+                  name="sort"
+                  value="<?php echo h($sort_value); ?>"
+                  data-filter-menu="sort"
+                  <?php echo $checked; ?>>
+                <label for="<?php echo h($input_id); ?>"><?php echo h($sort_label); ?></label>
+              </div>
+            <?php } ?>
+          </div>
+        </div>
+
         <div class="filter-actions">
           <button type="submit" class="button apply-filters-button">Apply Filters</button>
           <a class="button button-secondary" href="<?php echo recipes_index_page_url(1, $search); ?>">Clear Filters</a>
@@ -147,8 +187,17 @@ include(SHARED_PATH . '/public_header.php');
       <?php if ($search !== '') { ?>
         <a
           class="active-filter-chip"
-          href="<?php echo recipes_index_page_url(1, '', $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+          href="<?php echo recipes_index_page_url(1, '', $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
           Search: <?php echo h($search); ?>
+          <span aria-hidden="true">&times;</span>
+        </a>
+      <?php } ?>
+
+      <?php if ($sort !== 'newest') { ?>
+        <a
+          class="active-filter-chip"
+          href="<?php echo recipes_index_page_url(1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, 'newest'); ?>">
+          Sort: <?php echo h($allowed_sorts[$sort]); ?>
           <span aria-hidden="true">&times;</span>
         </a>
       <?php } ?>
@@ -159,7 +208,7 @@ include(SHARED_PATH . '/public_header.php');
         ?>
           <a
             class="active-filter-chip"
-            href="<?php echo recipes_index_remove_filter_url('meal_types', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+            href="<?php echo recipes_index_remove_filter_url('meal_types', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
             <?php echo h($meal_type_map[(string)$id]); ?>
             <span aria-hidden="true">&times;</span>
           </a>
@@ -170,7 +219,7 @@ include(SHARED_PATH . '/public_header.php');
         ?>
           <a
             class="active-filter-chip"
-            href="<?php echo recipes_index_remove_filter_url('cuisines', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+            href="<?php echo recipes_index_remove_filter_url('cuisines', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
             <?php echo h($cuisine_map[(string)$id]); ?>
             <span aria-hidden="true">&times;</span>
           </a>
@@ -181,7 +230,7 @@ include(SHARED_PATH . '/public_header.php');
         ?>
           <a
             class="active-filter-chip"
-            href="<?php echo recipes_index_remove_filter_url('dietary_styles', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+            href="<?php echo recipes_index_remove_filter_url('dietary_styles', $id, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
             <?php echo h($dietary_style_map[(string)$id]); ?>
             <span aria-hidden="true">&times;</span>
           </a>
@@ -210,7 +259,7 @@ include(SHARED_PATH . '/public_header.php');
       ?>
         <a href="<?php echo url_for('/recipes/show.php?id=' . u($recipe->id_rcp)); ?>" class="recipe-card">
           <div class="recipe-card-info">
-            <h3><?php echo h($recipe->title_rcp); ?></h3>
+            <h2><?php echo h($recipe->title_rcp); ?></h2>
             <div class="recipe-card-rating-time">
               <div class="recipe-card-rating">
                 <span>⭐</span>
@@ -260,7 +309,7 @@ include(SHARED_PATH . '/public_header.php');
     <nav class="pagination" aria-label="Recipe pages">
       <ul>
         <?php if ($page > 1) { ?>
-          <li><a href="<?php echo recipes_index_page_url($page - 1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">&laquo; Prev</a></li>
+          <li><a href="<?php echo recipes_index_page_url($page - 1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">&laquo; Prev</a></li>
         <?php } ?>
 
         <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
@@ -268,7 +317,7 @@ include(SHARED_PATH . '/public_header.php');
             <?php if ($i === $page) { ?>
               <span class="current"><?php echo h($i); ?></span>
             <?php } else { ?>
-              <a href="<?php echo recipes_index_page_url($i, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">
+              <a href="<?php echo recipes_index_page_url($i, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">
                 <?php echo h($i); ?>
               </a>
             <?php } ?>
@@ -276,7 +325,7 @@ include(SHARED_PATH . '/public_header.php');
         <?php } ?>
 
         <?php if ($page < $total_pages) { ?>
-          <li><a href="<?php echo recipes_index_page_url($page + 1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles); ?>">Next &raquo;</a></li>
+          <li><a href="<?php echo recipes_index_page_url($page + 1, $search, $selected_meal_types, $selected_cuisines, $selected_dietary_styles, $sort); ?>">Next &raquo;</a></li>
         <?php } ?>
       </ul>
     </nav>

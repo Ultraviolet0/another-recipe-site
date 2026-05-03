@@ -26,6 +26,11 @@ class User extends DatabaseObject
   protected $password_required = true;
   protected $roles = null;
 
+  /**
+   * Initializes a user object with provided attribute values.
+   *
+   * @param array $args Optional associative array of user attributes.
+   */
   public function __construct($args = [])
   {
     $this->username_usr = $args['username_usr'] ?? null;
@@ -38,16 +43,33 @@ class User extends DatabaseObject
     $this->confirm_password = $args['confirm_password'] ?? null;
   }
 
+  /**
+   * Hashes the current plain-text password and stores it on the user object.
+   *
+   * @return void
+   */
   protected function set_hashed_password()
   {
     $this->password_hash_usr = password_hash($this->password, PASSWORD_BCRYPT);
   }
 
+  /**
+   * Verifies a plain-text password against the stored password hash.
+   *
+   * @param string $password The plain-text password to verify.
+   * 
+   * @return bool True if the password matches the stored hash, false otherwise.
+   */
   public function verify_password($password)
   {
     return password_verify($password, $this->password_hash_usr);
   }
 
+  /**
+   * Creates a new user record and assigns the default member role on success.
+   *
+   * @return bool True if the user was created successfully, false otherwise.
+   */
   protected function create()
   {
     $this->set_hashed_password();
@@ -60,6 +82,11 @@ class User extends DatabaseObject
     return $result;
   }
 
+  /**
+   * Updates an existing user record, hashing a new password only when one is provided.
+   *
+   * @return bool True if the update succeeds, false otherwise.
+   */
   protected function update()
   {
     if ($this->password !== null && $this->password !== '') {
@@ -72,6 +99,11 @@ class User extends DatabaseObject
     return parent::update();
   }
 
+  /**
+   * Validates user attributes including username, email, and password requirements.
+   *
+   * @return array List of validation error messages.
+   */
   protected function validate()
   {
     $this->errors = [];
@@ -137,6 +169,13 @@ class User extends DatabaseObject
     return $this->errors;
   }
 
+  /**
+   * Finds a single user by username.
+   *
+   * @param string $username The username to search for.
+   * 
+   * @return static|false The matching user object, or false if no user is found.
+   */
   static public function find_by_username($username)
   {
     $sql = "SELECT * FROM " . static::$table_name . " ";
@@ -153,6 +192,12 @@ class User extends DatabaseObject
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 
+  /**
+   * Finds a single user by email address.
+   *
+   * @param string $email The email address to search for.
+   * @return static|false The matching user object, or false if no user is found.
+   */
   static public function find_by_email($email)
   {
     $sql = "SELECT * FROM " . static::$table_name . " ";
@@ -162,6 +207,13 @@ class User extends DatabaseObject
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 
+  /**
+   * Counts users with a specific account status.
+   *
+   * @param string $status The status value to count.
+   * 
+   * @return int Number of users with the given status.
+   */
   static public function count_by_status($status)
   {
     $status = static::$database->escape_string($status);
@@ -172,6 +224,11 @@ class User extends DatabaseObject
 
   // Roles Functions
 
+  /**
+   * Retrieves all available role names in display priority order.
+   *
+   * @return array List of role names.
+   */
   public static function all_role_names()
   {
     $sql = "SELECT name_rol ";
@@ -192,6 +249,11 @@ class User extends DatabaseObject
     return $roles;
   }
 
+  /**
+   * Retrieves the role names assigned to this user.
+   *
+   * @return array List of assigned role names.
+   */
   public function get_role_names()
   {
     if (!isset($this->id_usr)) {
@@ -221,6 +283,13 @@ class User extends DatabaseObject
     return $this->roles = $roles;
   }
 
+  /**
+   * Checks whether this user has a specific role.
+   *
+   * @param string $role_name The role name to check.
+   * 
+   * @return bool True if the user has the role, false otherwise.
+   */
   public function has_role($role_name)
   {
     $role_name = strtolower($role_name);
@@ -228,6 +297,14 @@ class User extends DatabaseObject
     return in_array($role_name, $roles, true);
   }
 
+  /**
+   * Checks whether a user has a specific role by user ID.
+   *
+   * @param int $user_id The ID of the user to check.
+   * @param string $role_name The role name to check.
+   * 
+   * @return bool True if the user has the role, false otherwise.
+   */
   public static function has_role_by_user_id($user_id, $role_name)
   {
     $user_id = (int)$user_id;
@@ -255,6 +332,11 @@ class User extends DatabaseObject
     return $has_role;
   }
 
+  /**
+   * Gets the user's highest-priority role for display.
+   *
+   * @return string The user's top role name.
+   */
   public function get_top_role()
   {
     if ($this->has_role('super admin')) {
@@ -266,12 +348,26 @@ class User extends DatabaseObject
     }
   }
 
+  /**
+   * Checks whether a user only has member-level access.
+   *
+   * @param int $user_id The ID of the user to check.
+   * 
+   * @return bool True if the user does not have admin or super admin access, false otherwise.
+   */
   public static function is_member_only($user_id)
   {
     return !static::has_role_by_user_id($user_id, 'admin')
       && !static::has_role_by_user_id($user_id, 'super admin');
   }
 
+  /**
+   * Adds a role to this user by role name.
+   *
+   * @param string $role_name The role name to assign.
+   * 
+   * @return bool True if the role was added successfully, false otherwise.
+   */
   public function add_role_by_name($role_name)
   {
     if (!isset($this->id_usr)) {
@@ -318,6 +414,13 @@ class User extends DatabaseObject
     return true;
   }
 
+  /**
+   * Replaces this user's assigned roles with the provided role names.
+   *
+   * @param array|string $role_names One or more role names to assign.
+   * 
+   * @return bool True if the roles were updated successfully, false otherwise.
+   */
   public function set_role_names($role_names)
   {
     if (!isset($this->id_usr)) {
@@ -364,6 +467,11 @@ class User extends DatabaseObject
     return true;
   }
 
+  /**
+   * Gets the user's profile image URL.
+   *
+   * @return string|null The profile image URL, or null if no profile image is set.
+   */
   public function profile_image_url(): ?string
   {
     if (is_blank($this->id_img_usr)) {
@@ -385,6 +493,11 @@ class User extends DatabaseObject
     return null;
   }
 
+  /**
+   * Updates the user's last login timestamp to the current time.
+   *
+   * @return bool True if the timestamp was updated successfully, false otherwise.
+   */
   public function update_last_login(): bool
   {
     if (is_blank($this->id_usr)) {
@@ -408,6 +521,11 @@ class User extends DatabaseObject
     return false;
   }
 
+  /**
+   * Formats the user's last active date for display.
+   *
+   * @return string|null The formatted last active date, or null if unavailable.
+   */
   public function last_active_display(): ?string
   {
     if (is_blank($this->last_login_at_usr)) {
@@ -417,6 +535,13 @@ class User extends DatabaseObject
     return date('F Y', strtotime($this->last_login_at_usr));
   }
 
+  /**
+   * Finds the most recently created user accounts.
+   *
+   * @param int $limit Maximum number of users to return.
+   * 
+   * @return array List of recent user objects.
+   */
   public static function find_recent_signups($limit = 8)
   {
     $limit = (int)$limit;
@@ -431,6 +556,11 @@ class User extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Gets summary counts for users by account status.
+   *
+   * @return array Associative array of total, pending, active, and disabled user counts.
+   */
   public static function admin_summary_counts()
   {
     $counts = [
@@ -457,10 +587,17 @@ class User extends DatabaseObject
       $counts['active_users'] = (int)($row['active_users'] ?? 0);
       $counts['disabled_users'] = (int)($row['disabled_users'] ?? 0);
     }
-    
+
     return $counts;
   }
 
+  /**
+   * Finds users for the admin user list with optional search, status, and role filters.
+   *
+   * @param array $filters Optional filter values for user_search, status, and role.
+   * 
+   * @return array List of matching user rows with role and recipe summary data.
+   */
   public static function admin_find_all($filters = [])
   {
     $search = trim($filters['user_search'] ?? '');
@@ -529,6 +666,13 @@ class User extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Counts the number of recipes created by a specific user.
+   *
+   * @param int $user_id The user ID to count recipes for.
+   * 
+   * @return int Number of recipes created by the user.
+   */
   public static function count_recipes_by_user_id($user_id)
   {
     $user_id = (int)$user_id;
@@ -543,6 +687,11 @@ class User extends DatabaseObject
     return static::$database->query($sql)->fetch_row()[0] ?? 0;
   }
 
+  /**
+   * Deletes this user and all recipes owned by the user in a database transaction.
+   *
+   * @return bool True if the user and recipes were deleted successfully, false otherwise.
+   */
   public function delete_with_recipes()
   {
     if (!isset($this->id_usr)) {

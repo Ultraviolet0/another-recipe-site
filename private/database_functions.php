@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Connect to the database.
+ *
+ * @return mysqli database connection
+ */
 function db_connect()
 {
   global $db_config;
@@ -18,6 +23,11 @@ function db_connect()
   return $connection;
 }
 
+/**
+ * Confirm that the database connection was successful.
+ *
+ * @param mysqli $connection - database connection to check
+ */
 function confirm_db_connect($connection)
 {
   if (!($connection instanceof mysqli)) {
@@ -40,6 +50,13 @@ function confirm_db_connect($connection)
   }
 }
 
+/**
+ * Disconnect from the database.
+ *
+ * @param mysqli $connection - database connection to close
+ * 
+ * @return bool true if the database connection was closed
+ */
 function db_disconnect($connection)
 {
   if ($connection instanceof mysqli) {
@@ -50,6 +67,11 @@ function db_disconnect($connection)
   return false;
 }
 
+/**
+ * Check whether the site is running in the development environment.
+ *
+ * @return bool true if the current environment is development
+ */
 function is_development_environment()
 {
   return defined('ENVIRONMENT') && ENVIRONMENT === 'development';

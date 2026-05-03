@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Build a public URL for a script path.
+ *
+ * @param string $script_path - script path to convert to a URL
+ * 
+ * @return string public URL
+ */
 function url_for($script_path)
 {
   // add the leading '/' if not present
@@ -9,21 +16,45 @@ function url_for($script_path)
   return rtrim(WWW_ROOT, '/') . $script_path;
 }
 
+/**
+ * URL encode a string.
+ *
+ * @param string $string - string to encode
+ * 
+ * @return string encoded string
+ */
 function u($string = "")
 {
   return urlencode($string);
 }
 
+/**
+ * Raw URL encode a string.
+ *
+ * @param string $string - string to encode
+ * 
+ * @return string encoded string
+ */
 function raw_u($string = "")
 {
   return rawurlencode($string);
 }
 
+/**
+ * Escape a string for safe HTML output.
+ *
+ * @param string $string - string to escape
+ * 
+ * @return string escaped string
+ */
 function h($string = "")
 {
   return htmlspecialchars($string);
 }
 
+/**
+ * Render the custom 404 error page and stop execution.
+ */
 function error_404()
 {
   global $session;
@@ -37,28 +68,53 @@ function error_404()
   exit;
 }
 
+/**
+ * Send a 500 internal server error response and stop execution.
+ */
 function error_500()
 {
   header($_SERVER["SERVER_PROTOCOL"] . " 500 Internal Server Error");
   exit();
 }
 
+/**
+ * Redirect the user to another location and stop execution.
+ *
+ * @param string $location - location to redirect to
+ */
 function redirect_to($location)
 {
   header("Location: " . $location);
   exit;
 }
 
+/**
+ * Check whether the current request uses the POST method.
+ *
+ * @return bool true if the current request is POST
+ */
 function is_post_request()
 {
   return $_SERVER['REQUEST_METHOD'] == 'POST';
 }
 
+/**
+ * Check whether the current request uses the GET method.
+ *
+ * @return bool true if the current request is GET
+ */
 function is_get_request()
 {
   return $_SERVER['REQUEST_METHOD'] == 'GET';
 }
 
+/**
+ * Convert a string to display-friendly title case.
+ *
+ * @param string $s - string to format
+ * 
+ * @return string title-cased string
+ */
 function display_title_case($s)
 {
   $s = trim((string)$s);
@@ -92,11 +148,26 @@ function display_title_case($s)
   return implode(' ', $parts);
 }
 
+/**
+ * Convert blank values to null.
+ *
+ * @param mixed $value - value to check
+ * 
+ * @return mixed null for blank values or the original value
+ */
 function blank_to_null($value)
 {
   return ($value === '' || $value === null) ? null : $value;
 }
 
+/**
+ * Format a number without unnecessary trailing zeroes.
+ *
+ * @param mixed $value - value to format
+ * @param int $max_decimals - maximum number of decimal places
+ * 
+ * @return string formatted number
+ */
 function format_number_clean($value, int $max_decimals = 2): string
 {
   if ($value === null || $value === '') {
@@ -122,6 +193,13 @@ function format_number_clean($value, int $max_decimals = 2): string
   return $str;
 }
 
+/**
+ * Format a quantity as a kitchen-friendly whole number, fraction, or decimal.
+ *
+ * @param mixed $value - quantity value to format
+ * 
+ * @return string formatted quantity
+ */
 function format_quantity_kitchen($value): string
 {
   if ($value === null || $value === '') {
@@ -186,12 +264,23 @@ function format_quantity_kitchen($value): string
   return format_number_clean($num);
 }
 
+/**
+ * Check whether the current request is an AJAX request.
+ *
+ * @return bool true if the current request is AJAX
+ */
 function is_ajax_request()
 {
   return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 }
 
+/**
+ * Render data as a JSON response and stop execution.
+ *
+ * @param mixed $data - data to encode as JSON
+ * @param int $status_code - HTTP status code for the response
+ */
 function render_json($data, $status_code = 200)
 {
   http_response_code($status_code);
@@ -200,6 +289,13 @@ function render_json($data, $status_code = 200)
   exit;
 }
 
+/**
+ * Extract a YouTube video ID from a valid YouTube URL.
+ *
+ * @param string $url - YouTube URL to parse
+ * 
+ * @return string|null YouTube video ID or null if invalid
+ */
 function extract_youtube_video_id($url)
 {
   $url = trim((string)$url);
@@ -246,6 +342,13 @@ function extract_youtube_video_id($url)
   return $video_id;
 }
 
+/**
+ * Build a YouTube embed URL from a valid video ID.
+ *
+ * @param string $video_id - YouTube video ID
+ * 
+ * @return string|null YouTube embed URL or null if invalid
+ */
 function youtube_embed_url($video_id)
 {
   if (!is_string($video_id) || !preg_match('/^[A-Za-z0-9_-]{11}$/', $video_id)) {
@@ -255,6 +358,13 @@ function youtube_embed_url($video_id)
   return 'https://www.youtube.com/embed/' . $video_id;
 }
 
+/**
+ * Build a list of recent admin activity items.
+ *
+ * @param int $limit - maximum number of activity items to return
+ * 
+ * @return array recent admin activity items
+ */
 function build_admin_recent_activity($limit = 8)
 {
   $limit = (int)$limit;
@@ -320,6 +430,11 @@ function build_admin_recent_activity($limit = 8)
   return array_slice($items, 0, $limit);
 }
 
+/**
+ * Get admin category configuration options.
+ *
+ * @return array admin category configuration options
+ */
 function admin_category_configs()
 {
   return [
@@ -381,12 +496,26 @@ function admin_category_configs()
   ];
 }
 
+/**
+ * Get one admin category configuration by key.
+ *
+ * @param string $key - category configuration key
+ * 
+ * @return array|null category configuration or null if not found
+ */
 function admin_category_config($key)
 {
   $configs = admin_category_configs();
   return $configs[$key] ?? null;
 }
 
+/**
+ * Count all items for an admin category.
+ *
+ * @param string $key - category configuration key
+ * 
+ * @return int category item count
+ */
 function admin_category_count($key)
 {
   global $database;
@@ -413,6 +542,13 @@ function admin_category_count($key)
   return (int)($row['count_total'] ?? 0);
 }
 
+/**
+ * Find all items for an admin category.
+ *
+ * @param string $key - category configuration key
+ * 
+ * @return array category items
+ */
 function admin_category_find_all($key)
 {
   global $database;
@@ -440,6 +576,14 @@ function admin_category_find_all($key)
   return $rows;
 }
 
+/**
+ * Find one admin category item by ID.
+ *
+ * @param string $key - category configuration key
+ * @param int $id - category item ID
+ * 
+ * @return array|null category item or null if not found
+ */
 function admin_category_find_by_id($key, $id)
 {
   global $database;
@@ -467,6 +611,15 @@ function admin_category_find_by_id($key, $id)
   return $row ?: null;
 }
 
+/**
+ * Check whether an admin category name already exists.
+ *
+ * @param string $key - category configuration key
+ * @param string $name - category item name to check
+ * @param int $exclude_id - category item ID to exclude
+ * 
+ * @return bool true if the name already exists
+ */
 function admin_category_name_exists($key, $name, $exclude_id = 0)
 {
   global $database;
@@ -502,6 +655,14 @@ function admin_category_name_exists($key, $name, $exclude_id = 0)
   return $exists;
 }
 
+/**
+ * Count how many recipes use an admin category item.
+ *
+ * @param string $key - category configuration key
+ * @param int $id - category item ID
+ * 
+ * @return int category item usage count
+ */
 function admin_category_usage_count($key, $id)
 {
   global $database;
@@ -536,6 +697,14 @@ function admin_category_usage_count($key, $id)
   return (int)($row['usage_total'] ?? 0);
 }
 
+/**
+ * Validate an admin category item name.
+ *
+ * @param string $key - category configuration key
+ * @param string $name - category item name to validate
+ * 
+ * @return string|null error message or null if valid
+ */
 function admin_category_validate_name($key, $name)
 {
   $config = admin_category_config($key);
@@ -557,6 +726,14 @@ function admin_category_validate_name($key, $name)
   return null;
 }
 
+/**
+ * Create a new admin category item.
+ *
+ * @param string $key - category configuration key
+ * @param string $name - category item name
+ * 
+ * @return bool true if the category item was created
+ */
 function admin_category_create($key, $name)
 {
   global $database;
@@ -575,6 +752,15 @@ function admin_category_create($key, $name)
   return $database->query($sql);
 }
 
+/**
+ * Update an existing admin category item.
+ *
+ * @param string $key - category configuration key
+ * @param int $id - category item ID
+ * @param string $name - new category item name
+ * 
+ * @return bool true if the category item was updated
+ */
 function admin_category_update($key, $id, $name)
 {
   global $database;
@@ -597,6 +783,14 @@ function admin_category_update($key, $id, $name)
   return $database->query($sql);
 }
 
+/**
+ * Delete an admin category item and remove its recipe relationships.
+ *
+ * @param string $key - category configuration key
+ * @param int $id - category item ID
+ * 
+ * @return bool true if the category item was deleted
+ */
 function admin_category_delete($key, $id)
 {
   global $database;
@@ -642,6 +836,13 @@ function admin_category_delete($key, $id)
   }
 }
 
+/**
+ * Get admin category items with recipe usage counts.
+ *
+ * @param string $key - category configuration key
+ * 
+ * @return array category items with usage counts
+ */
 function admin_category_items_with_usage($key)
 {
   $items = admin_category_find_all($key);

@@ -1,15 +1,33 @@
 <?php
 
+/**
+ * Get the OpenRouter API key from the environment.
+ *
+ * @return string OpenRouter API key
+ */
 function openrouter_api_key()
 {
   return $_ENV['OPENROUTER_API_KEY'] ?? getenv('OPENROUTER_API_KEY') ?? '';
 }
 
+/**
+ * Get the OpenRouter model name from the environment.
+ *
+ * @return string OpenRouter model name
+ */
 function openrouter_model()
 {
   return $_ENV['OPENROUTER_MODEL'] ?? getenv('OPENROUTER_MODEL') ?? '';
 }
 
+/**
+ * Build recipe profile text from a user's recent recipes.
+ *
+ * @param int $user_id - user ID to build profile text for
+ * @param int $limit - maximum number of recipes to include
+ * 
+ * @return string recipe profile text
+ */
 function openrouter_recipe_profile_text($user_id, $limit = 5)
 {
   $recipes = Recipe::find_by_user_id($user_id, $limit);
@@ -69,6 +87,13 @@ function openrouter_recipe_profile_text($user_id, $limit = 5)
   return implode("\n\n", $blocks);
 }
 
+/**
+ * Extract message content from an OpenRouter response.
+ *
+ * @param array $response_data - OpenRouter response data
+ * 
+ * @return string extracted message content
+ */
 function openrouter_extract_message_content($response_data)
 {
   $content = $response_data['choices'][0]['message']['content'] ?? '';
@@ -92,6 +117,14 @@ function openrouter_extract_message_content($response_data)
   return '';
 }
 
+/**
+ * Generate AI recipe recommendations for a user's dashboard.
+ *
+ * @param int $user_id - user ID to generate recommendations for
+ * @param string $username - username to include in the recommendation prompt
+ * 
+ * @return array recommendation result data
+ */
 function generate_dashboard_ai_recommendations($user_id, $username = '')
 {
   $api_key = trim(openrouter_api_key());
@@ -205,6 +238,13 @@ function generate_dashboard_ai_recommendations($user_id, $username = '')
   ];
 }
 
+/**
+ * Format dashboard AI recommendation text as HTML.
+ *
+ * @param string $text - recommendation text to format
+ * 
+ * @return string formatted recommendation HTML
+ */
 function format_dashboard_ai_recommendations_html($text)
 {
   $text = trim((string)$text);

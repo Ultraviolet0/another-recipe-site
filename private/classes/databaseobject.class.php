@@ -9,11 +9,23 @@ class DatabaseObject
   static protected $primary_key = "id";
   public $errors = [];
 
+  /**
+   * Set the database connection for database objects.
+   * 
+   * @param mysqli $database - database connection to use
+   */
   static public function set_database($database)
   {
     self::$database = $database;
   }
 
+  /**
+   * Find database records using a SQL query.
+   * 
+   * @param string $sql - SQL query to run
+   * 
+   * @return array objects created from query results
+   */
   static public function find_by_sql($sql)
   {
     $result = self::$database->query($sql);
@@ -31,12 +43,24 @@ class DatabaseObject
     return $object_array;
   }
 
+  /**
+   * Find all records in the database table.
+   * 
+   * @return array objects created from all table records
+   */
   static public function find_all()
   {
     $sql = "SELECT * FROM " . static::$table_name;
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Find one record by its primary key ID.
+   * 
+   * @param mixed $id - primary key ID to find
+   * 
+   * @return object|false object if found or false if not found
+   */
   static public function find_by_id($id)
   {
     $pk = static::$primary_key;
@@ -54,12 +78,24 @@ class DatabaseObject
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 
+  /**
+   * Count all records in the database table.
+   * 
+   * @return int total record count
+   */
   static public function count_all()
   {
     $sql = "SELECT COUNT(*) AS count FROM " . static::$table_name;
     return static::$database->query($sql)->fetch_row()[0] ?? 0;
   }
 
+  /**
+   * Create an object instance from a database record.
+   * 
+   * @param array $record - database record values
+   * 
+   * @return object object instance
+   */
   static protected function instantiate($record)
   {
     $object = new static;
@@ -73,6 +109,11 @@ class DatabaseObject
     return $object;
   }
 
+  /**
+   * Validate object attributes before saving.
+   * 
+   * @return array validation errors
+   */
   protected function validate()
   {
     $this->errors = [];
@@ -82,6 +123,11 @@ class DatabaseObject
     return $this->errors;
   }
 
+  /**
+   * Get object attributes for database columns.
+   * 
+   * @return array object attributes
+   */
   public function attributes()
   {
     $attributes = [];
@@ -94,6 +140,11 @@ class DatabaseObject
     return $attributes;
   }
 
+  /**
+   * Get escaped object attributes for database use.
+   * 
+   * @return array sanitized object attributes
+   */
   protected function sanitized_attributes()
   {
     $sanitized = [];
@@ -107,6 +158,11 @@ class DatabaseObject
     return $sanitized;
   }
 
+  /**
+   * Insert the object as a new database record.
+   * 
+   * @return bool true if the record was created
+   */
   protected function create()
   {
     $this->validate();
@@ -153,6 +209,11 @@ class DatabaseObject
     }
   }
 
+  /**
+   * Update the existing database record for the object.
+   * 
+   * @return bool true if the record was updated
+   */
   protected function update()
   {
     $this->validate();
@@ -180,12 +241,22 @@ class DatabaseObject
     return $result;
   }
 
+  /**
+   * Save the object by creating or updating its database record.
+   * 
+   * @return bool true if the object was saved
+   */
   public function save()
   {
     $pk = static::$primary_key;
     return isset($this->$pk) ? $this->update() : $this->create();
   }
 
+  /**
+   * Merge values into matching object properties.
+   * 
+   * @param array $args - values to merge into the object
+   */
   public function merge_attributes($args = [])
   {
     foreach ($args as $key => $value) {
@@ -195,6 +266,11 @@ class DatabaseObject
     }
   }
 
+  /**
+   * Delete the object's database record.
+   * 
+   * @return bool true if the record was deleted
+   */
   public function delete()
   {
     $pk = static::$primary_key;

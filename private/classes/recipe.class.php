@@ -34,6 +34,11 @@ class Recipe extends DatabaseObject
   // Non-DB Properties
   public $creator_username_usr;
 
+  /**
+   * Initializes a recipe object with provided attribute values.
+   *
+   * @param array $args Optional associative array of recipe attributes.
+   */
   public function __construct($args = [])
   {
     $this->id_usr_rcp = $args['id_usr_rcp'] ?? null;
@@ -47,6 +52,13 @@ class Recipe extends DatabaseObject
     $this->youtube_url_rcp = blank_to_null($args['youtube_url_rcp'] ?? null);
   }
 
+  /**
+   * Finds a recipe by ID and includes the creator's username.
+   *
+   * @param int|string $id The recipe ID to search for.
+   *
+   * @return static|false The matching recipe object, or false if no recipe is found.
+   */
   public static function find_with_creator_by_id($id)
   {
     if (!ctype_digit((string)$id)) {
@@ -65,6 +77,11 @@ class Recipe extends DatabaseObject
     return !empty($object_array) ? array_shift($object_array) : false;
   }
 
+  /**
+   * Validates recipe attributes including title, description, privacy, user, badge, and YouTube URL.
+   *
+   * @return array List of validation error messages.
+   */
   protected function validate()
   {
     $this->errors = [];
@@ -109,6 +126,19 @@ class Recipe extends DatabaseObject
     return $this->errors;
   }
 
+  /**
+   * Saves a recipe and its related child records in a database transaction.
+   *
+   * @param array $ingredients Ingredient data for the recipe.
+   * @param array $directions Direction data for the recipe.
+   * @param array|null $photo_files Uploaded photo file data.
+   * @param string|null $upload_root_public Public upload root path.
+   * @param array $meal_type_ids Selected meal type IDs.
+   * @param array $cuisine_ids Selected cuisine IDs.
+   * @param array $dietary_style_ids Selected dietary style IDs.
+   * 
+   * @return bool True if the recipe and child records were saved successfully, false otherwise.
+   */
   public function save_with_children(
     $ingredients = [],
     $directions = [],
@@ -158,6 +188,19 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Updates a recipe and replaces its related child records in a database transaction.
+   *
+   * @param array $ingredients Ingredient data for the recipe.
+   * @param array $directions Direction data for the recipe.
+   * @param array|null $photo_files Uploaded photo file data.
+   * @param string|null $upload_root_public Public upload root path.
+   * @param array $meal_type_ids Selected meal type IDs.
+   * @param array $cuisine_ids Selected cuisine IDs.
+   * @param array $dietary_style_ids Selected dietary style IDs.
+   * 
+   * @return bool True if the recipe and child records were updated successfully, false otherwise.
+   */
   public function update_with_children(
     $ingredients = [],
     $directions = [],
@@ -209,6 +252,16 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Validates recipe child data including cuisines, ingredients, directions, and uploaded images.
+   *
+   * @param array $cuisine_ids Selected cuisine IDs.
+   * @param array $ingredients Ingredient data to validate.
+   * @param array $directions Direction data to validate.
+   * @param array|null $photo_files Uploaded photo file data.
+   * 
+   * @return array List of validation error messages.
+   */
   protected function validate_children($cuisine_ids, $ingredients, $directions, $photo_files = null)
   {
     $errors = [];
@@ -303,6 +356,13 @@ class Recipe extends DatabaseObject
     return $errors;
   }
 
+  /**
+   * Deletes existing child records for a recipe before rebuilding its related data.
+   *
+   * @param int|string $recipe_id The recipe ID whose child records should be deleted.
+   * 
+   * @throws Exception If any child record delete query fails.
+   */
   protected function delete_child_rows($recipe_id)
   {
     $recipe_id = self::$database->escape_string($recipe_id);
@@ -323,6 +383,11 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Builds reusable form draft data from the recipe and its related records.
+   *
+   * @return array Associative array of recipe, child record, selection, count, and error data.
+   */
   public function draft_data(): array
   {
     $recipe = [
@@ -373,6 +438,14 @@ class Recipe extends DatabaseObject
     ];
   }
 
+  /**
+   * Inserts selected meal types for a recipe.
+   *
+   * @param int|string $recipe_id The recipe ID.
+   * @param array $meal_type_ids Selected meal type IDs.
+   * 
+   * @throws Exception If a meal type relationship cannot be inserted.
+   */
   protected function insert_meal_types($recipe_id, $meal_type_ids)
   {
     if (!is_array($meal_type_ids)) {
@@ -397,6 +470,14 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Inserts selected cuisines for a recipe.
+   *
+   * @param int|string $recipe_id The recipe ID.
+   * @param array $cuisine_ids Selected cuisine IDs.
+   *
+   * @throws Exception If a cuisine relationship cannot be inserted.
+   */
   protected function insert_cuisines($recipe_id, $cuisine_ids)
   {
     if (!is_array($cuisine_ids)) {
@@ -421,6 +502,14 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Inserts selected dietary styles for a recipe.
+   *
+   * @param int|string $recipe_id The recipe ID.
+   * @param array $dietary_style_ids Selected dietary style IDs.
+   *
+   * @throws Exception If a dietary style relationship cannot be inserted.
+   */
   protected function insert_dietary_styles($recipe_id, $dietary_style_ids)
   {
     if (!is_array($dietary_style_ids)) {
@@ -445,6 +534,14 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Inserts ingredients for a recipe, creating ingredients as needed.
+   *
+   * @param int|string $recipe_id The recipe ID.
+   * @param array $ingredients Ingredient row data.
+   *
+   * @throws Exception If an ingredient relationship cannot be inserted.
+   */
   protected function insert_ingredients($recipe_id, $ingredients)
   {
     foreach ($ingredients as $row) {
@@ -473,6 +570,15 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Finds an existing ingredient by name or creates it if needed.
+   *
+   * @param string $name_ing The ingredient name.
+   * 
+   * @return int The ingredient ID.
+   * 
+   * @throws Exception If the ingredient cannot be found or created.
+   */
   protected function find_or_create_ingredient($name_ing)
   {
     $name_ing = preg_replace('/\s+/', ' ', trim($name_ing));
@@ -499,6 +605,14 @@ class Recipe extends DatabaseObject
     throw new Exception("Failed to create ingredient: " . self::$database->error);
   }
 
+  /**
+   * Inserts direction steps for a recipe.
+   *
+   * @param int|string $recipe_id The recipe ID.
+   * @param array $directions Direction row data.
+   * 
+   * @throws Exception If a direction step cannot be inserted.
+   */
   protected function insert_directions($recipe_id, $directions)
   {
     $step = 1;
@@ -526,6 +640,17 @@ class Recipe extends DatabaseObject
     }
   }
 
+  /**
+   * Processes uploaded recipe images and links them to a recipe.
+   *
+   * @param int|string $recipe_id The recipe ID.
+   * @param array $files Uploaded image file data.
+   * @param string $upload_root_public Public upload root path.
+   * 
+   * @return array List of inserted image IDs.
+   * 
+   * @throws Exception If an image record or recipe-image link cannot be saved.
+   */
   protected function insert_images($recipe_id, $files, $upload_root_public)
   {
     $image_ids = [];
@@ -576,6 +701,13 @@ class Recipe extends DatabaseObject
     return $image_ids;
   }
 
+  /**
+   * Checks whether a user owns this recipe.
+   *
+   * @param int|string|null $user_id The user ID to check.
+   * 
+   * @return bool True if the user owns the recipe, false otherwise.
+   */
   public function is_owner($user_id): bool
   {
     if ($user_id === null) {
@@ -584,6 +716,13 @@ class Recipe extends DatabaseObject
     return (string)$this->id_usr_rcp === (string)$user_id;
   }
 
+  /**
+   * Checks whether the current session can view this recipe.
+   *
+   * @param Session $session The current user session.
+   * 
+   * @return bool True if the recipe can be viewed, false otherwise.
+   */
   public function can_view(Session $session): bool
   {
     $privacy = $this->privacy_rcp ?? 'public';
@@ -595,11 +734,23 @@ class Recipe extends DatabaseObject
     return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in();
   }
 
+  /**
+   * Checks whether the current session can edit this recipe.
+   *
+   * @param Session $session The current user session.
+   * 
+   * @return bool True if the recipe can be edited, false otherwise.
+   */
   public function can_edit(Session $session): bool
   {
     return $this->is_owner($session->get_user_id()) || $session->is_admin_logged_in();
   }
 
+  /**
+   * Gets the selected meal type IDs for this recipe.
+   *
+   * @return array List of selected meal type IDs.
+   */
   public function meal_type_ids(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -618,6 +769,11 @@ class Recipe extends DatabaseObject
     return $ids;
   }
 
+  /**
+   * Gets the selected cuisine IDs for this recipe.
+   *
+   * @return array List of selected cuisine IDs.
+   */
   public function cuisine_ids(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -636,6 +792,11 @@ class Recipe extends DatabaseObject
     return $ids;
   }
 
+  /**
+   * Gets the selected dietary style IDs for this recipe.
+   *
+   * @return array List of selected dietary style IDs.
+   */
   public function dietary_style_ids(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -654,6 +815,11 @@ class Recipe extends DatabaseObject
     return $ids;
   }
 
+  /**
+   * Gets the ingredient rows for this recipe.
+   *
+   * @return array List of ingredient rows with quantity, measurement, and name data.
+   */
   public function ingredients(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -681,6 +847,11 @@ class Recipe extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Gets the direction steps for this recipe.
+   *
+   * @return array List of direction rows ordered by step number.
+   */
   public function directions(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -701,6 +872,11 @@ class Recipe extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Gets the image filenames linked to this recipe.
+   *
+   * @return array List of image filenames.
+   */
   public function images(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -722,6 +898,11 @@ class Recipe extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Gets the meal type names linked to this recipe.
+   *
+   * @return array List of meal type names.
+   */
   public function meal_types(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -743,6 +924,11 @@ class Recipe extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Gets the cuisine names linked to this recipe.
+   *
+   * @return array List of cuisine names.
+   */
   public function cuisines(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -764,6 +950,11 @@ class Recipe extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Gets the dietary style names linked to this recipe.
+   *
+   * @return array List of dietary style names.
+   */
   public function dietary_styles(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -785,6 +976,11 @@ class Recipe extends DatabaseObject
     return $rows;
   }
 
+  /**
+   * Gets the average rating and rating count for this recipe.
+   *
+   * @return array Associative array containing avg and count values.
+   */
   public function rating_summary(): array
   {
     $recipe_id = self::$database->escape_string($this->id_rcp);
@@ -806,6 +1002,13 @@ class Recipe extends DatabaseObject
     return ['avg' => $avg, 'count' => $count];
   }
 
+  /**
+   * Gets the current user's rating for this recipe.
+   *
+   * @param int|string|null $user_id The user ID to check.
+   * 
+   * @return int|null The user's rating, or null if no rating exists.
+   */
   public function user_rating($user_id): ?int
   {
     if ($user_id === null) {
@@ -829,6 +1032,14 @@ class Recipe extends DatabaseObject
     return null;
   }
 
+  /**
+   * Saves or updates a user's rating for this recipe.
+   *
+   * @param int|string|null $user_id The user ID submitting the rating.
+   * @param int $rating The rating value from 1 to 5.
+   * 
+   * @return bool True if the rating was saved successfully, false otherwise.
+   */
   public function save_rating($user_id, int $rating): bool
   {
     if ($user_id === null) {
@@ -851,6 +1062,13 @@ class Recipe extends DatabaseObject
     return (bool) self::$database->query($sql);
   }
 
+  /**
+   * Builds a SQL visibility condition based on the current session.
+   *
+   * @param Session $session The current user session.
+   * 
+   * @return string SQL condition for visible recipes.
+   */
   public static function visible_where_sql(Session $session): string
   {
     $current_user_id = $session->get_user_id();
@@ -867,6 +1085,13 @@ class Recipe extends DatabaseObject
     return "privacy_rcp = 'public'";
   }
 
+  /**
+   * Sanitizes an array of IDs by keeping only valid integer values.
+   *
+   * @param mixed $values Values to sanitize.
+   * 
+   * @return array List of sanitized integer IDs.
+   */
   protected static function sanitize_id_array($values): array
   {
     if (!is_array($values)) {
@@ -885,6 +1110,13 @@ class Recipe extends DatabaseObject
     return $clean;
   }
 
+  /**
+   * Builds SQL JOIN and WHERE fragments for recipe search.
+   *
+   * @param string $search Optional search term.
+   * 
+   * @return array Associative array containing joins and where fragments.
+   */
   protected static function build_search_join_and_where(string $search = ''): array
   {
     $joins = [];
@@ -926,6 +1158,15 @@ class Recipe extends DatabaseObject
   }
 
 
+  /**
+   * Builds SQL JOIN and WHERE fragments for recipe filters.
+   *
+   * @param array $meal_type_ids Selected meal type IDs.
+   * @param array $cuisine_ids Selected cuisine IDs.
+   * @param array $dietary_style_ids Selected dietary style IDs.
+   * 
+   * @return array Associative array containing joins and where fragments.
+   */
   protected static function build_filter_join_and_where(array $meal_type_ids = [], array $cuisine_ids = [], array $dietary_style_ids = []): array
   {
     $joins = [];
@@ -956,6 +1197,17 @@ class Recipe extends DatabaseObject
     ];
   }
 
+  /**
+   * Counts visible recipes matching the provided search and filter criteria.
+   *
+   * @param Session $session The current user session.
+   * @param string $search Optional search term.
+   * @param array $meal_type_ids Selected meal type IDs.
+   * @param array $cuisine_ids Selected cuisine IDs.
+   * @param array $dietary_style_ids Selected dietary style IDs.
+   * 
+   * @return int Number of matching recipes.
+   */
   public static function count_filtered(
     Session $session,
     string $search = '',
@@ -993,6 +1245,20 @@ class Recipe extends DatabaseObject
     return (int)($row['recipe_count'] ?? 0);
   }
 
+  /**
+   * Finds visible recipes matching search, filter, pagination, and sort options.
+   *
+   * @param Session $session The current user session.
+   * @param int $page Current page number.
+   * @param int $per_page Number of recipes per page.
+   * @param string $search Optional search term.
+   * @param array $meal_type_ids Selected meal type IDs.
+   * @param array $cuisine_ids Selected cuisine IDs.
+   * @param array $dietary_style_ids Selected dietary style IDs.
+   * @param string $sort Sort option.
+   * 
+   * @return array List of matching recipe objects.
+   */
   public static function find_filtered_paginated(
     Session $session,
     int $page = 1,
@@ -1000,20 +1266,32 @@ class Recipe extends DatabaseObject
     string $search = '',
     array $meal_type_ids = [],
     array $cuisine_ids = [],
-    array $dietary_style_ids = []
+    array $dietary_style_ids = [],
+    string $sort = 'newest'
   ): array {
     $search_parts = static::build_search_join_and_where($search);
     $filter_parts = static::build_filter_join_and_where($meal_type_ids, $cuisine_ids, $dietary_style_ids);
     $visibility_sql = static::visible_where_sql($session);
+    $sort = static::normalize_sort_option($sort);
 
     $page = max(1, $page);
     $per_page = max(1, $per_page);
     $offset = ($page - 1) * $per_page;
 
-    $sql = "SELECT DISTINCT recipe_rcp.* ";
+    $sql = "SELECT recipe_rcp.* ";
+
+    if ($sort === 'top_rated') {
+      $sql .= ", AVG(rating_rtg.rating_rtg) AS sort_avg_rating, COUNT(rating_rtg.id_rtg) AS sort_rating_count ";
+    }
+
     $sql .= "FROM recipe_rcp ";
 
     $joins = array_merge($filter_parts['joins'], $search_parts['joins']);
+
+    if ($sort === 'top_rated') {
+      $joins[] = "LEFT JOIN rating_rtg ON rating_rtg.id_rcp_rtg = recipe_rcp.id_rcp";
+    }
+
     if (!empty($joins)) {
       $sql .= implode(' ', array_unique($joins)) . ' ';
     }
@@ -1025,22 +1303,52 @@ class Recipe extends DatabaseObject
       $sql .= "WHERE " . implode(' AND ', $where) . " ";
     }
 
-    $sql .= "ORDER BY updated_at_rcp DESC ";
+    if ($sort === 'top_rated') {
+      $sql .= "GROUP BY recipe_rcp.id_rcp ";
+      $sql .= "ORDER BY sort_avg_rating DESC, sort_rating_count DESC, recipe_rcp.updated_at_rcp DESC ";
+    } elseif ($sort === 'oldest') {
+      $sql .= "GROUP BY recipe_rcp.id_rcp ";
+      $sql .= "ORDER BY recipe_rcp.created_at_rcp ASC, recipe_rcp.id_rcp ASC ";
+    } elseif ($sort === 'fastest') {
+      $sql .= "GROUP BY recipe_rcp.id_rcp ";
+      $sql .= "ORDER BY (recipe_rcp.prep_time_minutes_rcp + recipe_rcp.cook_time_minutes_rcp) ASC, recipe_rcp.updated_at_rcp DESC ";
+    } else {
+      $sql .= "GROUP BY recipe_rcp.id_rcp ";
+      $sql .= "ORDER BY recipe_rcp.created_at_rcp DESC, recipe_rcp.id_rcp DESC ";
+    }
+
     $sql .= "LIMIT {$per_page} OFFSET {$offset}";
 
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Calculates the recipe's total prep and cook time.
+   *
+   * @return int Total recipe time in minutes.
+   */
   public function total_time_minutes(): int
   {
     return (int)$this->prep_time_minutes_rcp + (int)$this->cook_time_minutes_rcp;
   }
 
+  /**
+   * Get the recipe rating display data.
+   *
+   * @return array recipe rating summary
+   */
   public function rating_display(): array
   {
     return $this->rating_summary();
   }
 
+  /**
+   * Delete a user's rating for this recipe.
+   *
+   * @param int $user_id - user ID for the rating to delete
+   * 
+   * @return bool true if the rating was deleted
+   */
   public function delete_rating($user_id): bool
   {
     if ($user_id === null) {
@@ -1058,6 +1366,11 @@ class Recipe extends DatabaseObject
     return (bool) self::$database->query($sql);
   }
 
+  /**
+   * Get the first recipe image URL for recipe cards.
+   *
+   * @return string|null first card image URL or null if none exists
+   */
   public function first_image_card_src(): ?string
   {
     $images = $this->images();
@@ -1068,6 +1381,11 @@ class Recipe extends DatabaseObject
     return url_for('/uploads/recipes/270/' . u($images[0]));
   }
 
+  /**
+   * Get the first recipe image srcset for recipe cards.
+   *
+   * @return string|null first card image srcset or null if none exists
+   */
   public function first_image_card_srcset(): ?string
   {
     $images = $this->images();
@@ -1082,6 +1400,11 @@ class Recipe extends DatabaseObject
       url_for('/uploads/recipes/540/' . u($file_name)) . ' 540w';
   }
 
+  /**
+   * Get the first recipe image sizes value for recipe cards.
+   *
+   * @return string|null first card image sizes value or null if none exists
+   */
   public function first_image_card_sizes(): ?string
   {
     $images = $this->images();
@@ -1092,6 +1415,11 @@ class Recipe extends DatabaseObject
     return '(max-width: 640px) 45vw, 270px';
   }
 
+  /**
+   * Get the first recipe image URL for the hero image.
+   *
+   * @return string|null first hero image URL or null if none exists
+   */
   public function first_image_hero_src(): ?string
   {
     $images = $this->images();
@@ -1102,6 +1430,11 @@ class Recipe extends DatabaseObject
     return url_for('/uploads/recipes/540/' . u($images[0]));
   }
 
+  /**
+   * Get the first recipe image srcset for the hero image.
+   *
+   * @return string|null first hero image srcset or null if none exists
+   */
   public function first_image_hero_srcset(): ?string
   {
     $images = $this->images();
@@ -1116,6 +1449,11 @@ class Recipe extends DatabaseObject
       url_for('/uploads/recipes/1600/' . u($file_name)) . ' 1600w';
   }
 
+  /**
+   * Get the first recipe image sizes value for the hero image.
+   *
+   * @return string|null first hero image sizes value or null if none exists
+   */
   public function first_image_hero_sizes(): ?string
   {
     $images = $this->images();
@@ -1126,6 +1464,11 @@ class Recipe extends DatabaseObject
     return '(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px';
   }
 
+  /**
+   * Get the first recipe image full-size URL.
+   *
+   * @return string|null first full-size image URL or null if none exists
+   */
   public function first_image_full_url(): ?string
   {
     $images = $this->images();
@@ -1136,6 +1479,13 @@ class Recipe extends DatabaseObject
     return url_for('/uploads/recipes/1600/' . u($images[0]));
   }
 
+  /**
+   * Check whether a badge ID exists.
+   *
+   * @param int|string $badge_id - badge ID to check
+   * 
+   * @return bool true if the badge exists
+   */
   protected function badge_exists($badge_id): bool
   {
     if (!ctype_digit((string)$badge_id)) {
@@ -1156,11 +1506,21 @@ class Recipe extends DatabaseObject
     return $exists;
   }
 
+  /**
+   * Get the recipe badge ID.
+   *
+   * @return string|null badge ID or null if none exists
+   */
   public function badge_id(): ?string
   {
     return is_blank($this->id_bdg_rcp) ? null : (string)$this->id_bdg_rcp;
   }
 
+  /**
+   * Get the recipe badge name.
+   *
+   * @return string|null badge name or null if none exists
+   */
   public function badge_name(): ?string
   {
     if (is_blank($this->id_bdg_rcp)) {
@@ -1179,6 +1539,14 @@ class Recipe extends DatabaseObject
     return null;
   }
 
+  /**
+   * Find newest recipes for the homepage.
+   *
+   * @param Session $session - current session object
+   * @param int $limit - maximum number of recipes to return
+   * 
+   * @return array newest homepage recipes
+   */
   public static function find_homepage_newest(Session $session, int $limit = 6): array
   {
     $limit = max(1, (int)$limit);
@@ -1193,6 +1561,14 @@ class Recipe extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Find top rated recipes for the homepage.
+   *
+   * @param Session $session - current session object
+   * @param int $limit - maximum number of recipes to return
+   * 
+   * @return array top rated homepage recipes
+   */
   public static function find_homepage_top_rated(Session $session, int $limit = 6): array
   {
     $limit = max(1, (int)$limit);
@@ -1210,6 +1586,14 @@ class Recipe extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Find quick recipes for the homepage.
+   *
+   * @param Session $session - current session object
+   * @param int $limit - maximum number of recipes to return
+   * 
+   * @return array quick homepage recipes
+   */
   public static function find_homepage_quick_recipes(Session $session, int $limit = 6): array
   {
     $limit = max(1, (int)$limit);
@@ -1225,6 +1609,14 @@ class Recipe extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Find public recipes by user ID.
+   *
+   * @param int $user_id - user ID to search by
+   * @param int $limit - maximum number of recipes to return
+   * 
+   * @return array public recipes
+   */
   public static function find_public_by_user_id($user_id, int $limit = 8): array
   {
     $safe_user_id = self::$database->escape_string($user_id);
@@ -1240,6 +1632,13 @@ class Recipe extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Count public recipes by user ID.
+   *
+   * @param int $user_id - user ID to count recipes for
+   * 
+   * @return int public recipe count
+   */
   public static function count_public_by_user_id($user_id): int
   {
     $safe_user_id = self::$database->escape_string($user_id);
@@ -1260,6 +1659,13 @@ class Recipe extends DatabaseObject
     return (int)($row['recipe_count'] ?? 0);
   }
 
+  /**
+   * Get the average rating for a user's public recipes.
+   *
+   * @param int $user_id - user ID to check
+   * 
+   * @return float|null average rating or null if no ratings exist
+   */
   public static function average_rating_for_public_recipes_by_user_id($user_id): ?float
   {
     $safe_user_id = self::$database->escape_string($user_id);
@@ -1281,16 +1687,33 @@ class Recipe extends DatabaseObject
     return ($row['avg_rating'] !== null) ? (float)$row['avg_rating'] : null;
   }
 
+  /**
+   * Get the recipe creator's username.
+   *
+   * @return string|null creator username or null if not available
+   */
   public function creator_username(): ?string
   {
     return $this->creator_username_usr ?? null;
   }
 
+  /**
+   * Get the recipe creator's profile URL.
+   *
+   * @return string creator profile URL
+   */
   public function creator_profile_url(): string
   {
     return url_for('/profile.php?id=' . u($this->id_usr_rcp));
   }
 
+  /**
+   * Count all recipes by user ID.
+   *
+   * @param int $user_id - user ID to count recipes for
+   * 
+   * @return int recipe count
+   */
   public static function count_by_user_id($user_id): int
   {
     if (!ctype_digit((string)$user_id)) {
@@ -1314,6 +1737,14 @@ class Recipe extends DatabaseObject
     return (int)($row['recipe_count'] ?? 0);
   }
 
+  /**
+   * Count recipes by user ID and privacy status.
+   *
+   * @param int $user_id - user ID to count recipes for
+   * @param string $privacy - privacy status to count
+   * 
+   * @return int recipe count
+   */
   public static function count_by_user_id_and_privacy($user_id, $privacy): int
   {
     if (!ctype_digit((string)$user_id)) {
@@ -1344,6 +1775,13 @@ class Recipe extends DatabaseObject
     return (int)($row['recipe_count'] ?? 0);
   }
 
+  /**
+   * Count recipes by privacy status.
+   *
+   * @param string $privacy - privacy status to count
+   * 
+   * @return int recipe count
+   */
   static public function count_by_privacy($privacy)
   {
     $privacy = static::$database->escape_string($privacy);
@@ -1352,6 +1790,14 @@ class Recipe extends DatabaseObject
     return static::$database->query($sql)->fetch_row()[0] ?? 0;
   }
 
+  /**
+   * Find recent recipes by user ID.
+   *
+   * @param int $user_id - user ID to search by
+   * @param int $limit - maximum number of recipes to return
+   * 
+   * @return array user recipes
+   */
   public static function find_by_user_id($user_id, int $limit = 5): array
   {
     if (!ctype_digit((string)$user_id)) {
@@ -1370,6 +1816,14 @@ class Recipe extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Find recipes by user ID with an optional privacy filter.
+   *
+   * @param int $user_id - user ID to search by
+   * @param string $privacy - privacy status to filter by
+   * 
+   * @return array user recipes
+   */
   public static function find_by_user_id_filtered($user_id, string $privacy = ''): array
   {
     if (!ctype_digit((string)$user_id)) {
@@ -1393,6 +1847,13 @@ class Recipe extends DatabaseObject
     return static::find_by_sql($sql);
   }
 
+  /**
+   * Find recent recipe activity for the admin dashboard.
+   *
+   * @param int $limit - maximum number of activity rows to return
+   * 
+   * @return array recent recipe activity rows
+   */
   public static function find_recent_activity($limit = 8)
   {
     $limit = (int)$limit;
@@ -1420,5 +1881,20 @@ class Recipe extends DatabaseObject
     $result->free();
 
     return $rows;
+  }
+
+  /**
+   * Normalize a recipe sort option.
+   *
+   * @param string $sort - sort option to normalize
+   * 
+   * @return string normalized sort option
+   */
+  protected static function normalize_sort_option($sort): string
+  {
+    $allowed = ['newest', 'oldest', 'fastest', 'top_rated'];
+
+    $sort = trim((string)$sort);
+    return in_array($sort, $allowed, true) ? $sort : 'newest';
   }
 }

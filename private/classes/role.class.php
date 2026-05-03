@@ -10,11 +10,21 @@ class Role extends DatabaseObject
   public $id_rol;
   public $name_rol;
 
+  /**
+   * Create a new role object.
+   * 
+   * @param array $args - role property values
+   */
   public function __construct($args = [])
   {
     $this->name_rol = $args['name_rol'] ?? '';
   }
 
+  /**
+   * Validate role attributes before saving.
+   * 
+   * @return array validation errors
+   */
   protected function validate()
   {
     $this->errors = [];
@@ -26,6 +36,13 @@ class Role extends DatabaseObject
     return $this->errors;
   }
 
+  /**
+   * Find one role by name.
+   * 
+   * @param string $name - role name to find
+   * 
+   * @return Role|false role object if found or false if not found
+   */
   static public function find_by_name($name)
   {
     $sql = "SELECT * FROM " . static::$table_name . " ";

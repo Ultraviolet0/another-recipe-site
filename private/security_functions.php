@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Verify a Cloudflare Turnstile token.
+ *
+ * @param string $token - Turnstile response token to verify
+ * @param string|null $remote_ip - user's remote IP address
+ * 
+ * @return bool true if the token is valid
+ */
 function verify_turnstile_token(string $token, ?string $remote_ip = null): bool
 {
   $secret = $_ENV['TURNSTILE_SECRET_KEY'] ?? '';

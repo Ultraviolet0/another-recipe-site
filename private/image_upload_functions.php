@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Create a directory if it does not already exist.
+ *
+ * @param string $path - directory path to create
+ */
 function ensure_dir($path)
 {
   if (!is_dir($path)) {
@@ -7,6 +12,14 @@ function ensure_dir($path)
   }
 }
 
+/**
+ * Load an image file into a GD image resource based on its image type.
+ *
+ * @param string $filepath - path to the uploaded image file
+ * @param int $image_type - PHP image type constant
+ * 
+ * @return GdImage|null loaded GD image or null if unsupported
+ */
 function gd_load_image($filepath, $image_type)
 {
   return match ($image_type) {
@@ -17,6 +30,15 @@ function gd_load_image($filepath, $image_type)
   };
 }
 
+/**
+ * Save a GD image as a WebP file.
+ *
+ * @param GdImage $img - image to save
+ * @param string $filepath - destination file path
+ * @param int $quality - WebP quality value
+ * 
+ * @return bool true if the image was saved successfully
+ */
 function save_webp_image($img, $filepath, $quality = 80)
 {
   if (!function_exists('imagewebp')) {
@@ -30,6 +52,16 @@ function save_webp_image($img, $filepath, $quality = 80)
   return imagewebp($img, $filepath, $quality);
 }
 
+/**
+ * Create a square cropped image from the center of a source image.
+ *
+ * @param GdImage $src_img - source image to crop
+ * @param int $src_w - source image width
+ * @param int $src_h - source image height
+ * @param int $size - width and height of the square crop
+ * 
+ * @return GdImage cropped square image
+ */
 function make_square_crop($src_img, $src_w, $src_h, $size)
 {
   $dst = imagecreatetruecolor($size, $size);
@@ -57,6 +89,17 @@ function make_square_crop($src_img, $src_w, $src_h, $size)
   return $dst;
 }
 
+/**
+ * Resize an image to fit within maximum dimensions without enlarging it.
+ *
+ * @param GdImage $src_img - source image to resize
+ * @param int $src_w - source image width
+ * @param int $src_h - source image height
+ * @param int $max_w - maximum output width
+ * @param int $max_h - maximum output height
+ * 
+ * @return GdImage resized image
+ */
 function make_resize_to_fit($src_img, $src_w, $src_h, $max_w, $max_h)
 {
   $scale = min($max_w / $src_w, $max_h / $src_h, 1);
@@ -85,6 +128,14 @@ function make_resize_to_fit($src_img, $src_w, $src_h, $max_w, $max_h)
   return $dst;
 }
 
+/**
+ * Process a recipe image upload and generate WebP image variants.
+ *
+ * @param array $file - uploaded file data from $_FILES
+ * @param string $upload_root_public - public upload root path
+ * 
+ * @return array generated file name and image variant paths
+ */
 function process_recipe_upload($file, $upload_root_public)
 {
   if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {

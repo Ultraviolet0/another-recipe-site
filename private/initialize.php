@@ -32,7 +32,11 @@ require_once('image_upload_functions.php');
 require_once('security_functions.php');
 require_once('openrouter_functions.php');
 
-// Autoload class definitions
+/**
+ * Autoload class files by class name.
+ *
+ * @param string $class - class name to load
+ */
 function my_autoload($class)
 {
   if (preg_match('/\A\w+\Z/', $class)) {

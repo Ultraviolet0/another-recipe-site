@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Require the user to be logged in before viewing a page.
+ */
 function require_login()
 {
   global $session;
@@ -8,6 +11,9 @@ function require_login()
   }
 }
 
+/**
+ * Require the user to be logged in as an admin before viewing a page.
+ */
 function require_admin_login()
 {
   global $session;
@@ -16,6 +22,13 @@ function require_admin_login()
   }
 }
 
+/**
+ * Display validation errors as HTML.
+ *
+ * @param array $errors - errors to display
+ * 
+ * @return string error message HTML
+ */
 function display_errors($errors = array())
 {
   $output = '';
@@ -32,6 +45,11 @@ function display_errors($errors = array())
   return $output;
 }
 
+/**
+ * Display and clear the current session flash message.
+ *
+ * @return string flash message HTML
+ */
 function display_session_message()
 {
   global $session;
